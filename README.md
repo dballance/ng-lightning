@@ -33,7 +33,7 @@ If you need IE11 support, you'll need to provide the following polyfills. Typica
 * [SVG4Everybody](https://github.com/jonathantneal/svg4everybody)
 * [classList.js](https://github.com/eligrey/classList.js)
 
-** It has been noted that the second polyfill causes considerable slowdown to page rendering when used in Angular dev mode. Using `enableProdMode()` resolves this issue, so make sure you always run in production with this flag! As these polyfills do not affect Chrome or Firefox, it might be worthwhile to utilize those browsers in development. There is **
+** It has been noted that the second polyfill causes considerable slowdown to page rendering when used in Angular dev mode. Using `enableProdMode()` resolves this issue, so make sure you always run in production with this flag! As these polyfills do not affect Chrome or Firefox, it might be worthwhile to utilize those browsers in development.**
 
 ## Usage & Demo
 http://ng-lightning.github.io/ng-lightning/
