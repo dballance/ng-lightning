@@ -1,0 +1,30 @@
+import { ElementRef, Renderer } from '@angular/core';
+import { NglConfig } from '../config/config';
+import { NglButton } from '../buttons/button';
+import { NglButtonIcon } from '../buttons/button-icon';
+export declare type NglIconCategory = 'action' | 'custom' | 'doctype' | 'standard' | 'utility';
+export declare class NglIcon {
+    private config;
+    element: ElementRef;
+    renderer: Renderer;
+    private state;
+    private nglButton;
+    private nglButtonIcon;
+    _icon: string;
+    setIcon: string;
+    icon: string;
+    setCategory: NglIconCategory;
+    type: 'default' | 'warning' | 'error';
+    align: 'left' | 'right';
+    size: 'x-small' | 'small' | 'large';
+    alt: string;
+    svgClass: string | string[];
+    private category;
+    private button;
+    private _containerClass;
+    constructor(config: NglConfig, element: ElementRef, renderer: Renderer, state: 'not-selected' | 'selected' | 'selected-focus', button: 'not-selected' | 'selected' | 'selected-focus', nglButton: NglButton, nglButtonIcon: NglButtonIcon);
+    iconPath(): string;
+    ngOnChanges(): void;
+    svgClasses(): (string | string[])[];
+    private containerClass;
+}
