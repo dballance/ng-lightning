@@ -5,6 +5,7 @@
 /temp/
 /coverage/
 /docs/
+/dist/
 
 ### Package manager generated
 node_modules
