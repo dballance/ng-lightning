@@ -1,3 +1,414 @@
+<a name="1.2.1"></a>
+## [1.2.1](https://github.com/ng-lightning/ng-lightning/compare/v1.2.0...v1.2.1) (2017-03-03)
+
+
+### Bug Fixes
+
+* **icons:** remove `xmlns:xlink` attribute from SVG ([5706cd5](https://github.com/ng-lightning/ng-lightning/commit/5706cd5))
+
+
+
+<a name="1.2.0"></a>
+# [1.2.0](https://github.com/ng-lightning/ng-lightning/compare/v1.1.0...v1.2.0) (2016-12-18)
+
+
+### Bug Fixes
+
+* **picklist:** empty initial and handle falsy values of placeholder ([2ca807f](https://github.com/ng-lightning/ng-lightning/commit/2ca807f))
+
+
+### Features
+
+* **icons:** add waffle icon ([047f13d](https://github.com/ng-lightning/ng-lightning/commit/047f13d)), closes [#281](https://github.com/ng-lightning/ng-lightning/issues/281)
+* **lookups:** support custom header ([edfb316](https://github.com/ng-lightning/ng-lightning/commit/edfb316)), closes [#136](https://github.com/ng-lightning/ng-lightning/issues/136) [#286](https://github.com/ng-lightning/ng-lightning/issues/286)
+* **tabs:** configurable tab header capitalisation ([3513dbc](https://github.com/ng-lightning/ng-lightning/commit/3513dbc)), closes [#285](https://github.com/ng-lightning/ng-lightning/issues/285)
+
+
+
+<a name="1.1.0"></a>
+# [1.1.0](https://github.com/ng-lightning/ng-lightning/compare/v1.0.2...v1.1.0) (2016-11-29)
+
+
+### Bug Fixes
+
+* **popovers:** properly cleanup content passed as `TemplateRef` ([52687c9](https://github.com/ng-lightning/ng-lightning/commit/52687c9)), closes [#274](https://github.com/ng-lightning/ng-lightning/issues/274)
+
+
+### Features
+
+* **popovers:** expose `position` method ([00b1a74](https://github.com/ng-lightning/ng-lightning/commit/00b1a74)), closes [#273](https://github.com/ng-lightning/ng-lightning/issues/273)
+
+
+
+<a name="1.0.2"></a>
+## [1.0.2](https://github.com/ng-lightning/ng-lightning/compare/v1.0.1...v1.0.2) (2016-11-17)
+
+
+### Bug Fixes
+
+* **config:** don’t try to unsubscribe if no subscription ([931496f](https://github.com/ng-lightning/ng-lightning/commit/931496f)), closes [#270](https://github.com/ng-lightning/ng-lightning/issues/270) [#271](https://github.com/ng-lightning/ng-lightning/issues/271)
+* **datatables:** correctly use `trackByKey` input ([ab754e7](https://github.com/ng-lightning/ng-lightning/commit/ab754e7)), closes [#268](https://github.com/ng-lightning/ng-lightning/issues/268) [#269](https://github.com/ng-lightning/ng-lightning/issues/269)
+
+
+
+<a name="1.0.1"></a>
+## [1.0.1](https://github.com/ng-lightning/ng-lightning/compare/v1.0.0...v1.0.1) (2016-11-11)
+
+
+### Bug Fixes
+
+* **app:** remove `[@types](https://github.com/types)/core-js` ([3c316a9](https://github.com/ng-lightning/ng-lightning/commit/3c316a9)), closes [#265](https://github.com/ng-lightning/ng-lightning/issues/265) [#267](https://github.com/ng-lightning/ng-lightning/issues/267)
+
+
+
+<a name="1.0.0"></a>
+# [1.0.0](https://github.com/ng-lightning/ng-lightning/compare/v0.27.0...v1.0.0) (2016-11-07)
+
+
+### Bug Fixes
+
+* **datepicker:** correctly handle `firstDayOfWeek` as string attribute ([eab39df](https://github.com/ng-lightning/ng-lightning/commit/eab39df))
+* **datepicker:** handle when first day of week after first day of month ([3850150](https://github.com/ng-lightning/ng-lightning/commit/3850150))
+
+
+### Features
+
+* **datepicker:** support custom first day of week ([990783b](https://github.com/ng-lightning/ng-lightning/commit/990783b)), closes [#252](https://github.com/ng-lightning/ng-lightning/issues/252) [#255](https://github.com/ng-lightning/ng-lightning/issues/255)
+* **demo:** support AoT compilation ([b0f2f71](https://github.com/ng-lightning/ng-lightning/commit/b0f2f71)), closes [#262](https://github.com/ng-lightning/ng-lightning/issues/262)
+
+
+
+<a name="0.27.0"></a>
+# [0.27.0](https://github.com/ng-lightning/ng-lightning/compare/v0.26.0...v0.27.0) (2016-10-27)
+
+
+### Bug Fixes
+
+* **popovers:** `nglInteractive` is handled as boolean ([01e4981](https://github.com/ng-lightning/ng-lightning/commit/01e4981))
+* **popovers:** `nglPopoverBehavior` makes host focusable by default ([40e1d5b](https://github.com/ng-lightning/ng-lightning/commit/40e1d5b))
+
+
+### Features
+
+* **popovers:** support interaction with content ([cbef50d](https://github.com/ng-lightning/ng-lightning/commit/cbef50d)), closes [#254](https://github.com/ng-lightning/ng-lightning/issues/254)
+* **rating:** support on/off color to be configurable ([f314e06](https://github.com/ng-lightning/ng-lightning/commit/f314e06)), closes [#253](https://github.com/ng-lightning/ng-lightning/issues/253)
+
+
+
+<a name="0.26.0"></a>
+# [0.26.0](https://github.com/ng-lightning/ng-lightning/compare/v0.25.0...v0.26.0) (2016-10-26)
+
+
+### Bug Fixes
+
+* **breadcrumbs:** support `routerLink` on each breadcrumb ([e978ed6](https://github.com/ng-lightning/ng-lightning/commit/e978ed6)), closes [#248](https://github.com/ng-lightning/ng-lightning/issues/248)
+* **popovers:** position after popover view is initialized ([1259247](https://github.com/ng-lightning/ng-lightning/commit/1259247)), closes [#251](https://github.com/ng-lightning/ng-lightning/issues/251)
+
+
+### Features
+
+* **rating:** expose `fill` value in custom template icons ([931359c](https://github.com/ng-lightning/ng-lightning/commit/931359c)), closes [#247](https://github.com/ng-lightning/ng-lightning/issues/247)
+* **rating:** support fractional values ([6aba289](https://github.com/ng-lightning/ng-lightning/commit/6aba289)), closes [#229](https://github.com/ng-lightning/ng-lightning/issues/229)
+
+
+### BREAKING CHANGES
+
+* breadcrumbs: breadcrumb is now a structural directive
+
+  Before:
+
+  ```html
+  <ngl-breadcrumb href="...">...</ngl-breadcrumb>
+  ```
+
+  After:
+
+  ```html
+  <a *nglBreadcrumb href="...">...</a>
+  ```
+
+
+
+<a name="0.25.0"></a>
+# [0.25.0](https://github.com/ng-lightning/ng-lightning/compare/v0.24.0...v0.25.0) (2016-10-15)
+
+
+### Features
+
+* **forms:** add checkbox toggle component ([99d0ddd](https://github.com/ng-lightning/ng-lightning/commit/99d0ddd)), closes [#246](https://github.com/ng-lightning/ng-lightning/issues/246)
+* **popovers:** add output event when shows or hides ([4d08456](https://github.com/ng-lightning/ng-lightning/commit/4d08456)), closes [#244](https://github.com/ng-lightning/ng-lightning/issues/244)
+
+
+
+<a name="0.24.0"></a>
+# [0.24.0](https://github.com/ng-lightning/ng-lightning/compare/v0.23.0...v0.24.0) (2016-10-12)
+
+
+### Bug Fixes
+
+* **forms:** checkbox/radios have more accessible DOM structure ([22a2464](https://github.com/ng-lightning/ng-lightning/commit/22a2464)), closes [#214](https://github.com/ng-lightning/ng-lightning/issues/214)
+* **lookups:** correctly declare `debounce` as input instead of attribute ([170bcd1](https://github.com/ng-lightning/ng-lightning/commit/170bcd1))
+* **lookups:** don't render `<label>` element if empty ([c50572e](https://github.com/ng-lightning/ng-lightning/commit/c50572e)), closes [#233](https://github.com/ng-lightning/ng-lightning/issues/233)
+* **notifications:** clear timeout when destroyed ([c91a20c](https://github.com/ng-lightning/ng-lightning/commit/c91a20c)), closes [#237](https://github.com/ng-lightning/ng-lightning/issues/237)
+
+
+### Features
+
+* **build:** distribute ESM with metadata and UMD bundle ([a52702f](https://github.com/ng-lightning/ng-lightning/commit/a52702f)), closes [#239](https://github.com/ng-lightning/ng-lightning/issues/239)
+* **app:** upgrade SLDS to to 2.1.2 ([8125ec7](https://github.com/ng-lightning/ng-lightning/commit/8125ec7))
+* **modals:** support custom header template ([345bce7](https://github.com/ng-lightning/ng-lightning/commit/345bce7)), closes [#234](https://github.com/ng-lightning/ng-lightning/issues/234)
+* **popovers:** support "manual" open and close with custom delay ([adc0fcc](https://github.com/ng-lightning/ng-lightning/commit/adc0fcc)), closes [#235](https://github.com/ng-lightning/ng-lightning/issues/235)
+* **popovers:** support delayed closing ([cb0b2c6](https://github.com/ng-lightning/ng-lightning/commit/cb0b2c6)), closes [#231](https://github.com/ng-lightning/ng-lightning/issues/231)
+
+
+### BREAKING CHANGES
+
+* build: code is now available as ES modules or UMD bundle and no longer as commonjs
+* forms: structural changes
+  * all input/textarea/select inside `<ngl-form-element>` or `<ngl-form-group-element>` should have `nglFormControl` attribute
+  * single checkboxes should be wrapped by `<ngl-form-checkbox>`
+
+  Before:
+
+  ```html
+  <ngl-form-element><input type="checkbox" /></ngl-form-element>
+  <ngl-form-element><select></select></ngl-form-element>
+  ```
+
+  After:
+
+  ```html
+  <ngl-form-checkbox><input nglFormControl type="checkbox" /></ngl-form-element>
+  <ngl-form-element><select nglFormControl></select></ngl-form-element>
+  ```
+* lookups: `nglLookupLabel` should be hosted on `<template>`
+
+  Before:
+
+  ```html
+  <ngl-lookup>
+     <span nglLookupLabel>...</span>
+  </ngl-lookup>
+  ```
+
+  After:
+
+  ```html
+  <ngl-lookup>
+     <template nglLookupLabel>...</template>
+  </ngl-lookup>
+
+  ```
+  or
+  ```html
+  <ngl-lookup label="..."></ngl-lookup>
+
+  ```
+
+
+
+<a name="0.23.0"></a>
+# [0.23.0](https://github.com/ng-lightning/ng-lightning/compare/v0.22.0...v0.23.0) (2016-10-03)
+
+
+### Bug Fixes
+
+* **app:** add `forRoot` to `NglModule` ([6426534](https://github.com/ng-lightning/ng-lightning/commit/6426534)), closes [#228](https://github.com/ng-lightning/ng-lightning/issues/228)
+* **config:** remove `provideNglConfig` for injectable `NglConfig` ([47acd3d](https://github.com/ng-lightning/ng-lightning/commit/47acd3d)), closes [#218](https://github.com/ng-lightning/ng-lightning/issues/218)
+* **forms:** remove `nglForm` prefix from input attributes ([5e9f16a](https://github.com/ng-lightning/ng-lightning/commit/5e9f16a)), closes [#217](https://github.com/ng-lightning/ng-lightning/issues/217)
+* **menus:** don't close when inner element is clicked and removed from DOM ([5361f80](https://github.com/ng-lightning/ng-lightning/commit/5361f80)), closes [#223](https://github.com/ng-lightning/ng-lightning/issues/223) [#224](https://github.com/ng-lightning/ng-lightning/issues/224)
+
+
+### Features
+
+* **config:** support runtime change of configuration ([3a14b44](https://github.com/ng-lightning/ng-lightning/commit/3a14b44)), closes [#219](https://github.com/ng-lightning/ng-lightning/issues/219)
+* **popovers:** support delayed opening ([8878beb](https://github.com/ng-lightning/ng-lightning/commit/8878beb)), closes [#222](https://github.com/ng-lightning/ng-lightning/issues/222)
+* **rating:** support custom color for on/off state ([0e771e1](https://github.com/ng-lightning/ng-lightning/commit/0e771e1)), closes [#226](https://github.com/ng-lightning/ng-lightning/issues/226)
+
+
+### BREAKING CHANGES
+
+* app: `NglModule` must now be imported using the `forRoot()` static method.
+* config: In case you didn't override default configuration values, just remove `provideNglConfig()`. If you did then, check the `Configuration` section for more details.
+* forms: renamed `nglForm*` attributes to just `*`
+
+  Before:
+
+  ```html
+  <... [nglFormLabel]="..."></...>
+  <... [nglFormError]="..."></...>
+  <... [nglFormRequired]="..."></...>
+  ```
+
+  After:
+
+  ```html
+  <... [label]="..."></...>
+  <... [error]="..."></...>
+  <... [required]="..."></...>
+  ```
+
+
+
+<a name="0.22.0"></a>
+# [0.22.0](https://github.com/ng-lightning/ng-lightning/compare/v0.21.0...v0.22.0) (2016-09-15)
+
+
+### Features
+
+* **app:** upgrade Angular to 2.0.0 ([cab4c08](https://github.com/ng-lightning/ng-lightning/commit/cab4c08)), closes [#213](https://github.com/ng-lightning/ng-lightning/issues/213)
+* **datatables:** add loading overlay ([15fd577](https://github.com/ng-lightning/ng-lightning/commit/15fd577)), closes [#201](https://github.com/ng-lightning/ng-lightning/issues/201)
+* **datatables:** add row event handler ([446fe68](https://github.com/ng-lightning/ng-lightning/commit/446fe68)), closes [#204](https://github.com/ng-lightning/ng-lightning/issues/204) [#208](https://github.com/ng-lightning/ng-lightning/issues/208)
+* **datatables:** custom message when no data available ([052a0a6](https://github.com/ng-lightning/ng-lightning/commit/052a0a6)), closes [#205](https://github.com/ng-lightning/ng-lightning/issues/205)
+* **datatables:** support custom header template ([c0ecd8c](https://github.com/ng-lightning/ng-lightning/commit/c0ecd8c)), closes [#206](https://github.com/ng-lightning/ng-lightning/issues/206) [#211](https://github.com/ng-lightning/ng-lightning/issues/211)
+* **rating:** support `max` as input ([456ce76](https://github.com/ng-lightning/ng-lightning/commit/456ce76)), closes [#203](https://github.com/ng-lightning/ng-lightning/issues/203)
+* **rating:** support custom icon ([95a013f](https://github.com/ng-lightning/ng-lightning/commit/95a013f)), closes [#200](https://github.com/ng-lightning/ng-lightning/issues/200) [#202](https://github.com/ng-lightning/ng-lightning/issues/202)
+
+
+### Performance Improvements
+
+* **NglInternalOutlet:** reduce number of checks needed ([2b3b1ab](https://github.com/ng-lightning/ng-lightning/commit/2b3b1ab)), closes [#209](https://github.com/ng-lightning/ng-lightning/issues/209)
+
+
+
+<a name="0.21.0"></a>
+# [0.21.0](https://github.com/ng-lightning/ng-lightning/compare/v0.20.0...v0.21.0) (2016-09-09)
+
+
+### Bug Fixes
+
+* **icons:** remove `default` as default color ([288e65b](https://github.com/ng-lightning/ng-lightning/commit/288e65b)), closes [#191](https://github.com/ng-lightning/ng-lightning/issues/191)
+* **modals:** use default change detection strategy ([3e6fd4b](https://github.com/ng-lightning/ng-lightning/commit/3e6fd4b)), closes [#197](https://github.com/ng-lightning/ng-lightning/issues/197)
+* **picklist:** convent filter to lowercase before compare ([17899ab](https://github.com/ng-lightning/ng-lightning/commit/17899ab))
+
+
+### Features
+
+* **lookups:** support custom message when no results found ([cd1b758](https://github.com/ng-lightning/ng-lightning/commit/cd1b758)), closes [#198](https://github.com/ng-lightning/ng-lightning/issues/198) [#199](https://github.com/ng-lightning/ng-lightning/issues/199)
+* **paginations:** support custom text for non-number buttons ([3c38201](https://github.com/ng-lightning/ng-lightning/commit/3c38201)), closes [#193](https://github.com/ng-lightning/ng-lightning/issues/193) [#195](https://github.com/ng-lightning/ng-lightning/issues/195)
+
+
+### BREAKING CHANGES
+
+* icons: utility icons have no default type `default`
+
+  Before:
+
+  ```html
+  <ngl-icon ...></ngl-icon>
+  ```
+
+  After:
+
+  ```html
+  <ngl-icon ... type="default"></ngl-icon>
+  ```
+
+
+
+<a name="0.20.0"></a>
+# [0.20.0](https://github.com/ng-lightning/ng-lightning/compare/v0.19.0...v0.20.0) (2016-09-02)
+
+
+### Features
+
+* **app:** upgrade Angular 2 to rc.6 ([ea144aa](https://github.com/ng-lightning/ng-lightning/commit/ea144aa)), closes [#187](https://github.com/ng-lightning/ng-lightning/issues/187)
+
+
+
+<a name="0.19.0"></a>
+# [0.19.0](https://github.com/ng-lightning/ng-lightning/compare/v0.18.0...v0.19.0) (2016-08-25)
+
+
+### Bug Fixes
+
+* **app:** declare `@angular/*` as peer dependencies ([722cf23](https://github.com/ng-lightning/ng-lightning/commit/722cf23))
+
+
+### Features
+
+* **datepickers:** support custom month and day names ([1f7bbb3](https://github.com/ng-lightning/ng-lightning/commit/1f7bbb3)), closes [#184](https://github.com/ng-lightning/ng-lightning/issues/184)
+
+
+### BREAKING CHANGES
+
+* datepickers: Intl polypill for Safari is no longer needed
+
+
+
+<a name="0.18.0"></a>
+# [0.18.0](https://github.com/ng-lightning/ng-lightning/compare/v0.17.0...v0.18.0) (2016-08-24)
+
+
+### Bug Fixes
+
+* **pagination:** bound start page by total elements ([ee08318](https://github.com/ng-lightning/ng-lightning/commit/ee08318)), closes [#178](https://github.com/ng-lightning/ng-lightning/issues/178)
+
+
+### Features
+
+* **app:** upgrade Angular 2 to rc.5 and [@NgModule](https://github.com/NgModule) ([7b3a902](https://github.com/ng-lightning/ng-lightning/commit/7b3a902)), closes [#182](https://github.com/ng-lightning/ng-lightning/issues/182)
+
+
+### BREAKING CHANGES
+
+* app: use `@NgModule` to setup your application. Check the `Usage` section for more details.
+
+
+
+<a name="0.17.0"></a>
+# [0.17.0](https://github.com/ng-lightning/ng-lightning/compare/v0.16.0...v0.17.0) (2016-08-08)
+
+
+### Bug Fixes
+
+* **build:** support and test IE11 ([b925469](https://github.com/ng-lightning/ng-lightning/commit/b925469)), closes [#121](https://github.com/ng-lightning/ng-lightning/issues/121) [#163](https://github.com/ng-lightning/ng-lightning/issues/163)
+* **icons:** use `utility` as default category for `svg[nglIcon]` ([c4b7cfe](https://github.com/ng-lightning/ng-lightning/commit/c4b7cfe))
+* **modals:** simplify structure and correctly handle open state ([f87eeec](https://github.com/ng-lightning/ng-lightning/commit/f87eeec)), closes [#168](https://github.com/ng-lightning/ng-lightning/issues/168)
+* **pick:** emit on `nglOptionDestroyed` when a selected option is "destroyed" ([65546e9](https://github.com/ng-lightning/ng-lightning/commit/65546e9)), closes [#156](https://github.com/ng-lightning/ng-lightning/issues/156)
+* **popovers:** reposition generated popover after it's view initialized ([ae5a825](https://github.com/ng-lightning/ng-lightning/commit/ae5a825)), closes [#151](https://github.com/ng-lightning/ng-lightning/issues/151)
+
+
+### Features
+
+* **icons:** expose `svg[nglIcon]` component for increased flexibility ([e942ff1](https://github.com/ng-lightning/ng-lightning/commit/e942ff1)), closes [#161](https://github.com/ng-lightning/ng-lightning/issues/161)
+* **lookups:** add search icon option ([63867ba](https://github.com/ng-lightning/ng-lightning/commit/63867ba)), closes [#162](https://github.com/ng-lightning/ng-lightning/issues/162)
+* **lookups:** support polymorphic variation ([8249715](https://github.com/ng-lightning/ng-lightning/commit/8249715)), closes [#139](https://github.com/ng-lightning/ng-lightning/issues/139) [#165](https://github.com/ng-lightning/ng-lightning/issues/165)
+* **menus:** add picklist component ([2482ebe](https://github.com/ng-lightning/ng-lightning/commit/2482ebe)), closes [#158](https://github.com/ng-lightning/ng-lightning/issues/158)
+* **menus:** support picklist filter ([9cf07a7](https://github.com/ng-lightning/ng-lightning/commit/9cf07a7)), closes [#175](https://github.com/ng-lightning/ng-lightning/issues/175)
+* **modals:** support directional footer ([6bf0d2d](https://github.com/ng-lightning/ng-lightning/commit/6bf0d2d)), closes [#172](https://github.com/ng-lightning/ng-lightning/issues/172)
+* **modals:** support empty header ([723b563](https://github.com/ng-lightning/ng-lightning/commit/723b563)), closes [#169](https://github.com/ng-lightning/ng-lightning/issues/169)
+* **modals:** support removed footer ([f88cbbd](https://github.com/ng-lightning/ng-lightning/commit/f88cbbd)), closes [#173](https://github.com/ng-lightning/ng-lightning/issues/173) [#174](https://github.com/ng-lightning/ng-lightning/issues/174)
+
+
+### BREAKING CHANGES
+
+* modals: modal footer is inside <template ngl-modal-footer>
+
+  Before:
+
+  ```html
+  <ngl-modal>
+    ...
+    <button>Cancel</button>
+    <button>Submit</button>
+  </ngl-modal>
+  ```
+
+  After:
+
+  ```html
+  <ngl-modal>
+    ...
+    <template ngl-modal-footer>
+      <button>Cancel</button>
+      <button>Submit</button>
+    </template>
+  </ngl-modal>
+  ```
+
+
+
 <a name="0.16.0"></a>
 # [0.16.0](https://github.com/ng-lightning/ng-lightning/compare/v0.15.0...v0.16.0) (2016-07-13)
 

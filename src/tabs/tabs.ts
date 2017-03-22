@@ -1,12 +1,10 @@
 import {Component, Input, QueryList, ContentChildren, Output, EventEmitter} from '@angular/core';
-import {isInt} from '../util/util';
+import {isInt, toBoolean} from '../util/util';
 import {NglTab} from './tab';
-import {NglInternalOutlet} from '../util/outlet';
 
 @Component({
   selector: 'ngl-tabs',
-  templateUrl: './tabs.jade',
-  directives: [NglInternalOutlet],
+  templateUrl: './tabs.pug',
 })
 export class NglTabs {
   @Input() type: 'default' | 'scoped' = 'default';
@@ -26,6 +24,15 @@ export class NglTabs {
   }
 
   @Output() selectedChange = new EventEmitter<NglTab>();
+
+  @Input() set titleCaps(titleCaps: any) {
+    this._titleCaps = toBoolean(titleCaps);
+  }
+  get titleCaps() {
+    return this._titleCaps;
+  }
+
+  private _titleCaps = true;
 
   ngAfterContentInit() {
     // Initial selection after all tabs are created
@@ -48,8 +55,13 @@ export class NglTabs {
   }
 
   private activate() {
+    if (this.activeTab) {
+      this.activeTab.active = false;
+    }
     this.activeTab = this.findTab();
-    this.tabs.forEach((t: NglTab) => t.active = (t === this.activeTab));
+    if (this.activeTab) {
+      this.activeTab.active = true;
+    }
   }
 
   private findTab(value: any = this.selected): NglTab {

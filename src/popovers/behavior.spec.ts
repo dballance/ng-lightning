@@ -1,59 +1,55 @@
-import {inject, async, TestComponentBuilder, ComponentFixture}  from '@angular/core/testing';
+import {TestBed, ComponentFixture}  from '@angular/core/testing';
 import {Component} from '@angular/core';
-import { dispatchMouseEvent, dispatchFocusEvent } from '../../test/util/helpers';
-import {NGL_POPOVER_DIRECTIVES, NGL_POPOVER_PRECOMPILE} from './directives';
+import {createGenericTestComponent, dispatchEvent} from '../../test/util/helpers';
+import {NglPopoversModule} from './module';
 import {getPopoverElement} from './popover.spec';
+
+const createTestComponent = (html?: string, detectChanges?: boolean) =>
+  createGenericTestComponent(TestComponent, html, detectChanges) as ComponentFixture<TestComponent>;
 
 describe('`NglPopoverBehavior`', () => {
 
-  it('should change visibility based on mouse', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
+  beforeEach(() => TestBed.configureTestingModule({declarations: [TestComponent], imports: [NglPopoversModule]}));
 
+  it('should add `tabindex` to make it focusable', () => {
+    const fixture = createTestComponent();
     const triggerEl = fixture.nativeElement.firstElementChild;
-    dispatchMouseEvent(triggerEl, 'mouseenter');
+    expect(triggerEl.getAttribute('tabindex')).toBe('0');
+  });
+
+  it('should change visibility based on mouse', () => {
+    const fixture = createTestComponent();
+    const triggerEl = fixture.nativeElement.firstElementChild;
+    dispatchEvent(triggerEl, 'mouseenter');
     expect(getPopoverElement(fixture.nativeElement)).toBeTruthy();
 
-    dispatchMouseEvent(triggerEl, 'mouseleave');
+    dispatchEvent(triggerEl, 'mouseleave');
     expect(getPopoverElement(fixture.nativeElement)).toBeFalsy();
-  }));
+  });
 
-  it('should change visibility based on focus', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
-
+  it('should change visibility based on focus', () => {
+    const fixture = createTestComponent();
     const triggerEl = fixture.nativeElement.firstElementChild;
-    dispatchFocusEvent(triggerEl, 'focus');
+    dispatchEvent(triggerEl, 'focus');
     expect(getPopoverElement(fixture.nativeElement)).toBeTruthy();
 
-    dispatchFocusEvent(triggerEl, 'blur');
+    dispatchEvent(triggerEl, 'blur');
     expect(getPopoverElement(fixture.nativeElement)).toBeFalsy();
-  }));
+  });
 
-  it('should create more than one instances', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
-
+  it('should create more than one instances', () => {
+    const fixture = createTestComponent();
     const triggerEl = fixture.nativeElement.firstElementChild;
-    dispatchFocusEvent(triggerEl, 'focus');
-    dispatchMouseEvent(triggerEl, 'mouseenter');
+    dispatchEvent(triggerEl, 'focus');
+    dispatchEvent(triggerEl, 'mouseenter');
     expect(fixture.nativeElement.querySelectorAll('ngl-popover').length).toBe(1);
-  }));
+  });
 });
 
-// Shortcut function for less boilerplate on each `it`
-function testAsync(fn: (value: ComponentFixture<TestComponent>) => void, html: string = null) {
-  return async(inject([TestComponentBuilder], (tcb: TestComponentBuilder) => {
-    if (html) {
-      tcb = tcb.overrideTemplate(TestComponent, html);
-    }
-    return tcb.createAsync(TestComponent).then(fn);
-  }));
-}
-
 @Component({
-  directives: [NGL_POPOVER_DIRECTIVES],
   template: `
     <template #tip>I am a tooltip</template>
     <span [nglPopover]="tip" nglPopoverBehavior>Open here</span>
   `,
-  precompile: [NGL_POPOVER_PRECOMPILE],
 })
 export class TestComponent {}

@@ -1,39 +1,68 @@
-import {Component, Input, Output, ElementRef, Renderer, ChangeDetectionStrategy, EventEmitter} from '@angular/core';
+import {Component, Input, Output, ElementRef, Renderer, EventEmitter, HostListener, ViewChild, ContentChild} from '@angular/core';
 import {toBoolean, uniqueId} from '../util/util';
-import {NglButtonIcon} from '../buttons/button-icon';
-import {NglIcon} from '../icons/icon';
+import {NglModalFooter} from './footer';
+import {NglModalHeaderTemplate} from './header';
 
 @Component({
   selector: 'ngl-modal',
-  directives: [NglButtonIcon, NglIcon],
-  changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './modal.jade',
+  templateUrl: './modal.pug',
+  host: {
+    'tabindex': '0',
+  },
 })
 export class NglModal {
   @Input() header: string = '';
   @Input() size: 'large';
 
+  @Input() set directional(directional: string | boolean) {
+    this._directional = toBoolean(directional);
+  }
+  get directional() {
+    return this._directional;
+  }
+
+  @ViewChild('closeButton') closeButton: ElementRef;
+
   headingId = uniqueId('modal_header');
 
-  open: boolean = false;
-  @Input('open') set _open(_open: any) {
+  @Input() set open(_open: any) {
     _open = toBoolean(_open);
     if (_open === this.open) return;
 
-    if (_open) {
+    this._open = _open;
+    if (this.open) {
       setTimeout(() => this.focusFirst());
     }
-    this.open = _open;
   }
+  get open() {
+    return this._open;
+  }
+
   @Output() openChange = new EventEmitter();
 
-  constructor(private element: ElementRef, private renderer: Renderer) {}
+  @ContentChild(NglModalHeaderTemplate) headerTpl: NglModalHeaderTemplate;
 
-  close(event: string | boolean = false) {
-    this.openChange.emit(event);
+  @ContentChild(NglModalFooter) footer: NglModalFooter;
+
+  private _open: boolean = true;
+  private _directional = false;
+
+  constructor(private renderer: Renderer) {}
+
+  @HostListener('keydown.esc', ['$event'])
+  close(evt?: Event) {
+    if (evt) {
+      evt.stopPropagation();
+    }
+    this.openChange.emit(false);
+  }
+
+  @HostListener('click', ['$event'])
+  stopPropagation(evt: Event) {
+    evt.stopPropagation();
   }
 
   focusFirst() {
-    this.renderer.invokeElementMethod(this.element.nativeElement.children[0], 'focus', []);
+    this.renderer.invokeElementMethod(this.closeButton.nativeElement, 'focus', []);
   }
 };

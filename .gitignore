@@ -1,12 +1,13 @@
 ### Build generated
-/dist
 /demo/dist
+/demo/**/*.ngfactory.ts
+/demo/**/*.ngsummary.json
 /temp/
 /coverage/
+/docs/
 
 ### Package manager generated
-/node_modules/
-/typings/
+node_modules
 
 ### Logs
 *.log

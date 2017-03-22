@@ -1,35 +1,30 @@
-import {Component, ChangeDetectionStrategy, Input, Output, EventEmitter, HostBinding, ElementRef, Renderer} from '@angular/core';
-import {NglIcon} from '../icons/icon';
+import {Component, ChangeDetectionStrategy, Input, Output, EventEmitter, HostBinding, TemplateRef} from '@angular/core';
 
 @Component({
   selector: 'th[ngl-internal-datatatable-head]',
-  templateUrl: './_head.jade',
+  templateUrl: './_head.pug',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  directives: [NglIcon],
   host: {
     'scope': 'col',
+    '[class.slds-is-sorted--asc]': `sortOrder === 'asc'`,
+    '[class.slds-is-sorted--desc]': `sortOrder === 'desc'`,
+    '[class.slds-is-sorted]': `!!sortOrder`,
   },
 })
 export class NglInternalDatatableHeadCell {
 
   @HostBinding('attr.title')
   @Input() heading: string;
+  @Input() headingTpl: TemplateRef<any>;
+
+  get header() {
+    return this.headingTpl || this.heading;
+  }
 
   @HostBinding('class.slds-is-sortable')
   @Input() sortable: boolean;
 
-  @Input() set sortOrder(order: 'asc' | 'desc') {
-    this._sortOrder = order;
-    this.renderer.setElementClass(this.element.nativeElement, 'slds-is-sorted--asc', this.sortOrder === 'asc');
-    this.renderer.setElementClass(this.element.nativeElement, 'slds-is-sorted--desc', this.sortOrder === 'desc');
-  }
-  get sortOrder() {
-    return this._sortOrder;
-  }
-
-  @HostBinding('class.slds-is-sorted') get isSorted() {
-    return !!this.sortOrder;
-  }
+  @Input() sortOrder: 'asc' | 'desc';
 
   @HostBinding('attr.aria-sort')
   get ariaSort() {
@@ -37,10 +32,6 @@ export class NglInternalDatatableHeadCell {
   }
 
   @Output() onSort = new EventEmitter();
-
-  private _sortOrder: 'asc' | 'desc';
-
-  constructor(private element: ElementRef, private renderer: Renderer) {}
 
   sortChange() {
     this.onSort.emit(this.sortOrder === 'desc' ? 'asc' : 'desc');

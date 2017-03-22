@@ -1,12 +1,12 @@
-import {Component, Input, Output, EventEmitter, ElementRef, Renderer, HostBinding, ChangeDetectionStrategy} from '@angular/core';
-import {NglButtonIcon} from '../buttons/button-icon';
-import {NglIcon} from '../icons/icon';
+import {Component, Input, Output, EventEmitter, HostBinding, ChangeDetectionStrategy} from '@angular/core';
 
 @Component({
   selector: 'ngl-section',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './section.jade',
-  directives: [NglButtonIcon, NglIcon],
+  templateUrl: './section.pug',
+  host: {
+    '[class.slds-section]': 'true',
+  },
 })
 export class NglSection {
 
@@ -15,11 +15,7 @@ export class NglSection {
   @HostBinding('class.slds-is-open')
   @Input() open = false;
 
-  @Output() private openChange = new EventEmitter<boolean>();
-
-  constructor(private element: ElementRef, private renderer: Renderer) {
-    renderer.setElementClass(element.nativeElement, 'slds-section', true);
-  }
+  @Output() openChange = new EventEmitter<boolean>();
 
   toggle(event: Event) {
     event.preventDefault();

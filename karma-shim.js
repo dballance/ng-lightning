@@ -9,22 +9,33 @@ __karma__.loaded = function() {};
 
 System.config({
   baseURL: '/base',
+  paths: {
+    'npm:': 'node_modules/',
+    'tether': 'temp/test/mock/tether',
+  },
   map: {
-    'rxjs': 'node_modules/rxjs',
-    '@angular': 'node_modules/@angular',
-    'temp': 'temp'
+    'temp': 'temp',
+
+    // angular bundles
+    '@angular/core': 'npm:@angular/core/bundles/core.umd.js',
+    '@angular/common': 'npm:@angular/common/bundles/common.umd.js',
+    '@angular/compiler': 'npm:@angular/compiler/bundles/compiler.umd.js',
+    '@angular/forms': 'npm:@angular/forms/bundles/forms.umd.js',
+    '@angular/platform-browser': 'npm:@angular/platform-browser/bundles/platform-browser.umd.js',
+    '@angular/platform-browser-dynamic': 'npm:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic.umd.js',
+
+    // angular testing umd bundles
+    '@angular/core/testing': 'npm:@angular/core/bundles/core-testing.umd.js',
+    '@angular/compiler/testing': 'npm:@angular/compiler/bundles/compiler-testing.umd.js',
+    '@angular/platform-browser/testing': 'npm:@angular/platform-browser/bundles/platform-browser-testing.umd.js',
+    '@angular/platform-browser-dynamic/testing': 'npm:@angular/platform-browser-dynamic/bundles/platform-browser-dynamic-testing.umd.js',
+
+    // other libraries
+    'rxjs': 'npm:rxjs'
   },
   packages: {
     'temp': {defaultExtension: 'js'},
-    '@angular/core': {main: 'index.js', defaultExtension: 'js'},
-    '@angular/compiler': {main: 'index.js', defaultExtension: 'js'},
-    '@angular/common': {main: 'index.js', defaultExtension: 'js'},
-    '@angular/platform-browser': {main: 'index.js', defaultExtension: 'js'},
-    '@angular/platform-browser-dynamic': {main: 'index.js', defaultExtension: 'js'},
     'rxjs': {defaultExtension: 'js'},
-  },
-  paths: {
-    'tether': 'node_modules/tether/dist/js/tether.min.js'
   },
 });
 
@@ -33,24 +44,26 @@ Promise.all([
     System.import('@angular/platform-browser-dynamic/testing'),
     System.import('/base/temp/test/util/helpers.js'),
     System.import('/base/temp/test/util/matchers.js'),
-    System.import('https://npmcdn.com/classlist.js'),
-    System.import('https://npmcdn.com/svg4everybody')
+    System.import('https://unpkg.com/classlist.js'),
+    System.import('https://unpkg.com/svg4everybody')
       .then(function(){
         svg4everybody();
-      })
+    })
   ])
   .then(function(providers) {
-    var testing = providers[0];
-    var testingBrowser = providers[1];
+    var coreTesting = providers[0];
+    var browserTesting = providers[1];
 
-    testing.setBaseTestProviders(
-      testingBrowser.TEST_BROWSER_DYNAMIC_PLATFORM_PROVIDERS,
-      testingBrowser.TEST_BROWSER_DYNAMIC_APPLICATION_PROVIDERS);
+    coreTesting.TestBed.initTestEnvironment(browserTesting.BrowserDynamicTestingModule, browserTesting.platformBrowserDynamicTesting());
   })
   .then(function() {
     return Promise.all(resolveTestFiles());
   })
   .then(__karma__.start, __karma__.error);
+
+function onlyBuiltFiles(filePath) {
+  return /^\/base\/temp\//.test(filePath);
+}
 
 function onlySpecFiles(path) {
   return /\.spec\.js$/.test(path);
@@ -58,6 +71,7 @@ function onlySpecFiles(path) {
 
 function resolveTestFiles() {
   return Object.keys(window.__karma__.files)
+    .filter(onlyBuiltFiles)
     .filter(onlySpecFiles)
     .map(function(moduleName) {
       return System.import(moduleName);

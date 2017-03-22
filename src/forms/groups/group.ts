@@ -1,30 +1,38 @@
-import {Component, Input, ChangeDetectionStrategy, HostBinding, ContentChild, TemplateRef} from '@angular/core';
+import {Component, Input, ChangeDetectionStrategy, HostBinding, ContentChild, TemplateRef, OnChanges} from '@angular/core';
 import {uniqueId} from '../../util/util';
 import {NglFormLabelTemplate, getFormLabel} from '../form-label';
-import {NglInternalOutlet} from '../../util/outlet';
 
 @Component({
   selector: 'fieldset[ngl-form-group]',
-  templateUrl: './group.jade',
-  directives: [NglInternalOutlet],
+  templateUrl: './group.pug',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class.slds-form-element]': 'true',
   },
 })
-export class NglFormGroup {
+export class NglFormGroup implements OnChanges {
 
-  @Input('nglFormLabel') label: string;
+  @Input('label') labelStr: string;
   @ContentChild(NglFormLabelTemplate) labelTpl: NglFormLabelTemplate;
 
   @HostBinding('class.slds-has-error')
-  @Input('nglFormError') error: string;
+  @Input() error: string;
 
-  @Input('nglFormRequired') required: boolean;
+  @Input() required: boolean;
 
   uid = uniqueId('form_group');
 
-  get _label(): TemplateRef<any> | string {
-    return getFormLabel(this.label, this.labelTpl);
+  _label: string | TemplateRef<any>;
+
+  ngOnChanges(changes?: any) {
+    this.setFormLabel();
+  }
+
+  ngAfterContentInit() {
+    this.setFormLabel();
+  }
+
+  private setFormLabel() {
+    this._label = getFormLabel(this.labelStr, this.labelTpl);
   }
 };

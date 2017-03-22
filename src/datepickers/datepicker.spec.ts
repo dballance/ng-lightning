@@ -1,8 +1,12 @@
-import {inject, async, TestComponentBuilder, ComponentFixture}  from '@angular/core/testing';
+import {TestBed, ComponentFixture, async}  from '@angular/core/testing';
 import {Component} from '@angular/core';
-import {selectElements, dispatchKeyEvent} from '../../test/util/helpers';
+import {createGenericTestComponent, selectElements, dispatchEvent, dispatchKeyEvent} from '../../test/util/helpers';
 import {By} from '@angular/platform-browser';
+import {NglDatepickersModule} from './module';
 import {NglDatepicker} from './datepicker';
+
+const createTestComponent = (html?: string, detectChanges?: boolean) =>
+  createGenericTestComponent(TestComponent, html, detectChanges) as ComponentFixture<TestComponent>;
 
 // Microsoft Edge hack
 function removeNonPrintable(str: string) {
@@ -33,9 +37,7 @@ function chooseYear(element: HTMLElement, year: number) {
   const select = <HTMLSelectElement>element.querySelector('select');
   select.value = '' + year;
 
-  const evt = document.createEvent('HTMLEvents');
-  evt.initEvent('change', false, true);
-  select.dispatchEvent(evt);
+  dispatchEvent(select, 'change', false);
 }
 
 function clickButton(element: HTMLElement, isNext = false) {
@@ -52,29 +54,34 @@ function getTableRows(element: HTMLElement) {
   return selectElements(element, 'tbody > tr');
 }
 
-function expectCalendar(element: HTMLElement, expectedDates: any[], expectedMonth: string, expectedYear: string) {
-  const dates = getTableRows(element).map((trElement: HTMLElement, row: number) => {
-    return selectElements(trElement, 'td').map((td: HTMLElement, column: number) => {
-      let text = td.textContent.trim();
-      if (td.classList.contains('slds-is-selected')) {
-        text = '*' + text;
-      }
-      if (td.classList.contains('slds-is-today')) {
-        text += '+';
-      }
-      if (td.classList.contains('slds-disabled-text')) {
-        text += '-';
-      }
-      return text;
+function expectCalendar(fixture: ComponentFixture<TestComponent>, expectedDates: any[], expectedMonth: string, expectedYear: string) {
+  const element = fixture.nativeElement;
+
+  fixture.detectChanges();
+  return fixture.whenStable().then(() => {
+    const dates = getTableRows(element).map((trElement: HTMLElement, row: number) => {
+      return selectElements(trElement, 'td').map((td: HTMLElement, column: number) => {
+        let text = td.textContent.trim();
+        if (td.classList.contains('slds-is-selected')) {
+          text = '*' + text;
+        }
+        if (td.classList.contains('slds-is-today')) {
+          text += '+';
+        }
+        if (td.classList.contains('slds-disabled-text')) {
+          text += '-';
+        }
+        return text;
+      });
     });
+    expect(dates).toEqual(expectedDates);
+
+    const month = removeNonPrintable(element.querySelector('h2.slds-align-middle').textContent.trim());
+    expect(expectedMonth).toEqual(month);
+
+    const year = (<HTMLSelectElement>element.querySelector('select.slds-select')).value;
+    expect(expectedYear).toEqual(year);
   });
-  expect(dates).toEqual(expectedDates);
-
-  const month = element.querySelector('h2.slds-align-middle').textContent.trim();
-  expect(expectedMonth).toEqual(removeNonPrintable(month));
-
-  const year = (<HTMLSelectElement>element.querySelector('select.slds-select')).value;
-  expect(expectedYear).toEqual(year);
 }
 
 function expectYearOptions(element: HTMLElement, expectedYears: any[]) {
@@ -83,54 +90,54 @@ function expectYearOptions(element: HTMLElement, expectedYears: any[]) {
 
 describe('`Datepicker` Component', () => {
 
-  it('should render correctly', testAsync((fixture: ComponentFixture<TestComponent>) => {
+  beforeEach(() => TestBed.configureTestingModule({declarations: [TestComponent], imports: [NglDatepickersModule]}));
+
+  it('should render correctly', async(() => {
     const currentDate = new Date(2005, 10, 9); // 9 November 2005
     jasmine.clock().mockDate(currentDate);
 
-    fixture.detectChanges();
-    expectCalendar(fixture.nativeElement, [
+    const fixture = createTestComponent();
+
+    expectCalendar(fixture, [
       ['29-', '30-', '31-', '01', '02', '03', '04'],
       ['05', '06', '07', '08', '09', '10', '11'],
       ['12', '13', '14', '15', '16', '17', '18'],
       ['19', '20', '21', '22', '23', '24', '25'],
       ['26', '27', '28', '29', '*30+', '01-', '02-'],
-    ], 'September', '2010');
-    expect(getDayHeaders(fixture.nativeElement)).toEqual([ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ]);
-    expectYearOptions(fixture.nativeElement, buildArray(1905, 2015));
-
-    jasmine.clock().uninstall();
+    ], 'September', '2010').then(() => {
+      expect(getDayHeaders(fixture.nativeElement)).toEqual([ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ]);
+      expectYearOptions(fixture.nativeElement, buildArray(1905, 2015));
+    });
   }));
 
-  it('should change view when input date is changing', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
+  it('should change view when input date is changing', async(() => {
+    const fixture = createTestComponent();
 
     fixture.componentInstance.date = new Date(2013, 7, 11); // 11 August 2013
-    fixture.detectChanges();
-    expectCalendar(fixture.nativeElement, [
+    expectCalendar(fixture, [
       [ '28-', '29-', '30-', '31-', '01', '02', '03' ],
       [ '04', '05', '06', '07', '08', '09', '10' ],
       [ '*11+', '12', '13', '14', '15', '16', '17' ],
       [ '18', '19', '20', '21', '22', '23', '24' ],
       [ '25', '26', '27', '28', '29', '30', '31' ],
-    ], 'August', '2013');
+    ], 'August', '2013').then(() => {
 
-    fixture.componentInstance.date = new Date(2014, 9, 23); // 23 October 2014
-    fixture.detectChanges();
-    expectCalendar(fixture.nativeElement, [
-      [ '28-', '29-', '30-', '01', '02', '03', '04' ],
-      [ '05', '06', '07', '08', '09', '10', '11' ],
-      [ '12', '13', '14', '15', '16', '17', '18' ],
-      [ '19', '20', '21', '22', '*23+', '24', '25' ],
-      [ '26', '27', '28', '29', '30', '31', '01-' ],
-    ], 'October', '2014');
+      fixture.componentInstance.date = new Date(2014, 9, 23); // 23 October 2014
+      expectCalendar(fixture, [
+        [ '28-', '29-', '30-', '01', '02', '03', '04' ],
+        [ '05', '06', '07', '08', '09', '10', '11' ],
+        [ '12', '13', '14', '15', '16', '17', '18' ],
+        [ '19', '20', '21', '22', '*23+', '24', '25' ],
+        [ '26', '27', '28', '29', '30', '31', '01-' ],
+      ], 'October', '2014');
+    });
   }));
 
-  it('does not change current view when model is cleared', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
+  it('does not change current view when model is cleared', async(() => {
+    const fixture = createTestComponent();
 
     fixture.componentInstance.date = null;
-    fixture.detectChanges();
-    expectCalendar(fixture.nativeElement, [
+    expectCalendar(fixture, [
       ['29-', '30-', '31-', '01', '02', '03', '04'],
       ['05', '06', '07', '08', '09', '10', '11'],
       ['12', '13', '14', '15', '16', '17', '18'],
@@ -139,73 +146,73 @@ describe('`Datepicker` Component', () => {
     ], 'September', '2010');
   }));
 
-  it('should show current date if none is set', testAsync((fixture: ComponentFixture<TestComponent>) => {
+  it('should show current date if none is set', async(() => {
     const currentDate = new Date(2013, 7, 11); // 11 August 2013
     jasmine.clock().mockDate(currentDate);
 
+    const fixture = createTestComponent(null, false);
     fixture.componentInstance.date = null;
-    fixture.detectChanges();
-
-    expectCalendar(fixture.nativeElement, [
+    expectCalendar(fixture, [
       ['28-', '29-', '30-', '31-', '01', '02', '03'],
       ['04', '05', '06', '07', '08', '09', '10'],
       ['11+', '12', '13', '14', '15', '16', '17'],
       ['18', '19', '20', '21', '22', '23', '24'],
       ['25', '26', '27', '28', '29', '30', '31'],
     ], 'August', '2013');
-
-    jasmine.clock().uninstall();
   }));
 
-  it('updates the model when a day is clicked', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
+  it('updates the model when a day is clicked', () => {
+    const fixture = createTestComponent();
     const days = getDayElements(fixture.nativeElement);
     days[25].click();
     expect(fixture.componentInstance.dateChange).toHaveBeenCalledWith(new Date(2010, 8, 23));
-  }));
+  });
 
-  it('do nothing when a disabled day is clicked', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
+  it('do nothing when a disabled day is clicked', () => {
+    const fixture = createTestComponent();
     const days = getDayElements(fixture.nativeElement);
     days[1].click();
     expect(fixture.componentInstance.dateChange).not.toHaveBeenCalled();
-  }));
+  });
 
-  it('moves to previous month correctly when button is clicked', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
+  it('moves to previous month correctly when button is clicked', async(() => {
+    const fixture = createTestComponent();
     clickButton(fixture.nativeElement, false);
-    fixture.detectChanges();
-    expectCalendar(fixture.nativeElement, [
+
+    expectCalendar(fixture, [
       ['01', '02', '03', '04', '05', '06', '07'],
       ['08', '09', '10', '11', '12', '13', '14'],
       ['15', '16', '17', '18', '19', '20', '21'],
       ['22', '23', '24', '25', '26', '27', '28'],
       ['29', '30+', '31', '01-', '02-', '03-', '04-'],
-    ], 'August', '2010');
-    expect(fixture.componentInstance.dateChange).not.toHaveBeenCalled();
+    ], 'August', '2010').then(() => {
+      expect(fixture.componentInstance.dateChange).not.toHaveBeenCalled();
+    });
   }));
 
-  it('moves to next month correctly when button is clicked', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
+  it('moves to next month correctly when button is clicked', async(() => {
+    const fixture = createTestComponent();
     clickButton(fixture.nativeElement, true);
-    fixture.detectChanges();
-    expectCalendar(fixture.nativeElement, [
+
+    expectCalendar(fixture, [
       ['26-', '27-', '28-', '29-', '*30-', '01', '02'],
       ['03', '04', '05', '06', '07', '08', '09'],
       ['10', '11', '12', '13', '14', '15', '16'],
       ['17', '18', '19', '20', '21', '22', '23'],
       ['24', '25', '26', '27', '28', '29', '30+'],
       ['31', '01-', '02-', '03-', '04-', '05-', '06-'],
-    ], 'October', '2010');
-    expect(fixture.componentInstance.dateChange).not.toHaveBeenCalled();
+    ], 'October', '2010').then(() => {
+      expect(fixture.componentInstance.dateChange).not.toHaveBeenCalled();
+    });
   }));
 
-  it('should not "jump" months and keep current day in limits', testAsync((fixture: ComponentFixture<TestComponent>) => {
+  it('should not "jump" months and keep current day in limits', async(() => {
+    const fixture = createTestComponent();
     fixture.componentInstance.date = new Date(2016, 0, 30);
     fixture.detectChanges();
     clickButton(fixture.nativeElement, true);
-    fixture.detectChanges();
-    expectCalendar(fixture.nativeElement, [
+
+    expectCalendar(fixture, [
       [ '31-', '01', '02', '03', '04', '05', '06' ],
       [ '07', '08', '09', '10', '11', '12', '13' ],
       [ '14', '15', '16', '17', '18', '19', '20' ],
@@ -214,13 +221,12 @@ describe('`Datepicker` Component', () => {
     ], 'February', '2016');
   }));
 
-  it('moves to selected year from dropdown', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
+  it('moves to selected year from dropdown', async(() => {
+    const fixture = createTestComponent();
 
-    chooseYear(fixture.nativeElement, 2014);
-    setTimeout(() => {
-      fixture.detectChanges();
-      expectCalendar(fixture.nativeElement, [
+    fixture.whenStable().then(() => {
+      chooseYear(fixture.nativeElement, 2014);
+      expectCalendar(fixture, [
         [ '31-', '01', '02', '03', '04', '05', '06' ],
         [ '07', '08', '09', '10', '11', '12', '13' ],
         [ '14', '15', '16', '17', '18', '19', '20' ],
@@ -230,85 +236,87 @@ describe('`Datepicker` Component', () => {
     });
   }));
 
-  it('should change year range based on selection', testAsync((fixture: ComponentFixture<TestComponent>) => {
+  it('should change year range based on selection', () => {
     const currentDate = new Date(1983, 10, 7); // 7 November 1983
     jasmine.clock().mockDate(currentDate);
 
-    fixture.detectChanges();
+    const fixture = createTestComponent();
     expectYearOptions(fixture.nativeElement, buildArray(1883, 2010));
-
-    jasmine.clock().uninstall();
-  }));
+  });
 
   describe('keyboard navigation', () => {
 
-    it('will be able to activate appropriate day', testAsync((fixture: ComponentFixture<TestComponent>) => {
-      fixture.detectChanges();
+    it('will be able to activate appropriate day', async(() => {
+      const fixture = createTestComponent();
 
       dispatchKey(fixture, 'ArrowDown');
-      expectCalendar(fixture.nativeElement, [
+      expectCalendar(fixture, [
         ['26-', '27-', '28-', '29-', '*30-', '01', '02'],
         ['03', '04', '05', '06', '07+', '08', '09'],
         ['10', '11', '12', '13', '14', '15', '16'],
         ['17', '18', '19', '20', '21', '22', '23'],
         ['24', '25', '26', '27', '28', '29', '30'],
         ['31', '01-', '02-', '03-', '04-', '05-', '06-'],
-      ], 'October', '2010');
+      ], 'October', '2010').then(() => {
 
-      dispatchKey(fixture, 'ArrowLeft');
-      dispatchKey(fixture, 'ArrowLeft');
-      expectCalendar(fixture.nativeElement, [
-        ['26-', '27-', '28-', '29-', '*30-', '01', '02'],
-        ['03', '04', '05+', '06', '07', '08', '09'],
-        ['10', '11', '12', '13', '14', '15', '16'],
-        ['17', '18', '19', '20', '21', '22', '23'],
-        ['24', '25', '26', '27', '28', '29', '30'],
-        ['31', '01-', '02-', '03-', '04-', '05-', '06-'],
-      ], 'October', '2010');
+        dispatchKey(fixture, 'ArrowLeft');
+        dispatchKey(fixture, 'ArrowLeft');
+        return expectCalendar(fixture, [
+          ['26-', '27-', '28-', '29-', '*30-', '01', '02'],
+          ['03', '04', '05+', '06', '07', '08', '09'],
+          ['10', '11', '12', '13', '14', '15', '16'],
+          ['17', '18', '19', '20', '21', '22', '23'],
+          ['24', '25', '26', '27', '28', '29', '30'],
+          ['31', '01-', '02-', '03-', '04-', '05-', '06-'],
+        ], 'October', '2010');
+      }).then(() => {
 
-      dispatchKey(fixture, 'ArrowUp');
-      expectCalendar(fixture.nativeElement, [
-        ['29-', '30-', '31-', '01', '02', '03', '04'],
-        ['05', '06', '07', '08', '09', '10', '11'],
-        ['12', '13', '14', '15', '16', '17', '18'],
-        ['19', '20', '21', '22', '23', '24', '25'],
-        ['26', '27', '28+', '29', '*30', '01-', '02-'],
-      ], 'September', '2010');
+        dispatchKey(fixture, 'ArrowUp');
+        return expectCalendar(fixture, [
+          ['29-', '30-', '31-', '01', '02', '03', '04'],
+          ['05', '06', '07', '08', '09', '10', '11'],
+          ['12', '13', '14', '15', '16', '17', '18'],
+          ['19', '20', '21', '22', '23', '24', '25'],
+          ['26', '27', '28+', '29', '*30', '01-', '02-'],
+        ], 'September', '2010');
+      }).then(() => {
 
-      dispatchKey(fixture, 'ArrowRight');
-      expectCalendar(fixture.nativeElement, [
-        ['29-', '30-', '31-', '01', '02', '03', '04'],
-        ['05', '06', '07', '08', '09', '10', '11'],
-        ['12', '13', '14', '15', '16', '17', '18'],
-        ['19', '20', '21', '22', '23', '24', '25'],
-        ['26', '27', '28', '29+', '*30', '01-', '02-'],
-      ], 'September', '2010');
+        dispatchKey(fixture, 'ArrowRight');
+        return expectCalendar(fixture, [
+          ['29-', '30-', '31-', '01', '02', '03', '04'],
+          ['05', '06', '07', '08', '09', '10', '11'],
+          ['12', '13', '14', '15', '16', '17', '18'],
+          ['19', '20', '21', '22', '23', '24', '25'],
+          ['26', '27', '28', '29+', '*30', '01-', '02-'],
+        ], 'September', '2010');
+      });
     }));
 
-    it('will be able to activate appropriate edge day', testAsync((fixture: ComponentFixture<TestComponent>) => {
-      fixture.detectChanges();
+    it('will be able to activate appropriate edge day', async(() => {
+      const fixture = createTestComponent();
 
       dispatchKey(fixture, 'Home');
-      expectCalendar(fixture.nativeElement, [
+      expectCalendar(fixture, [
         ['29-', '30-', '31-', '01+', '02', '03', '04'],
         ['05', '06', '07', '08', '09', '10', '11'],
         ['12', '13', '14', '15', '16', '17', '18'],
         ['19', '20', '21', '22', '23', '24', '25'],
         ['26', '27', '28', '29', '*30', '01-', '02-'],
-      ], 'September', '2010');
+      ], 'September', '2010').then(() => {
 
-      dispatchKey(fixture, 'End');
-      expectCalendar(fixture.nativeElement, [
-        ['29-', '30-', '31-', '01', '02', '03', '04'],
-        ['05', '06', '07', '08', '09', '10', '11'],
-        ['12', '13', '14', '15', '16', '17', '18'],
-        ['19', '20', '21', '22', '23', '24', '25'],
-        ['26', '27', '28', '29', '*30+', '01-', '02-'],
-      ], 'September', '2010');
+        dispatchKey(fixture, 'End');
+        return expectCalendar(fixture, [
+          ['29-', '30-', '31-', '01', '02', '03', '04'],
+          ['05', '06', '07', '08', '09', '10', '11'],
+          ['12', '13', '14', '15', '16', '17', '18'],
+          ['19', '20', '21', '22', '23', '24', '25'],
+          ['26', '27', '28', '29', '*30+', '01-', '02-'],
+        ], 'September', '2010');
+      });
     }));
 
-    it('will be able to select active day', testAsync((fixture: ComponentFixture<TestComponent>) => {
-      fixture.detectChanges();
+    it('will be able to select active day', () => {
+      const fixture = createTestComponent();
 
       dispatchKey(fixture, 'ArrowDown');
       dispatchKey(fixture, 'ArrowLeft');
@@ -316,13 +324,14 @@ describe('`Datepicker` Component', () => {
       expect(fixture.componentInstance.dateChange).not.toHaveBeenCalled();
       dispatchKey(fixture, 'Enter');
       expect(fixture.componentInstance.dateChange).toHaveBeenCalledWith(new Date(2010, 9, 5));
-    }));
+    });
   });
 
-  it('should render `Today` based on input', testAsync((fixture: ComponentFixture<TestComponent>) => {
+  it('should render `Today` based on input', () => {
     const currentDate = new Date(2014, 9, 23); // 23 October 2014
     jasmine.clock().mockDate(currentDate);
 
+    const fixture = createTestComponent(`<ngl-datepicker [date]="date" (dateChange)="dateChange($event)" [showToday]="showToday"></ngl-datepicker>`);
     fixture.componentInstance.showToday = true;
     fixture.detectChanges();
     let rows = getTableRows(fixture.nativeElement);
@@ -336,27 +345,101 @@ describe('`Datepicker` Component', () => {
     fixture.componentInstance.showToday = false;
     fixture.detectChanges();
     expect(getTableRows(fixture.nativeElement).length).toBe(5);
+  });
 
-    jasmine.clock().uninstall();
-  }, `<ngl-datepicker [date]="date" (dateChange)="dateChange($event)" [showToday]="showToday"></ngl-datepicker>`));
+  it('should support custom month and day names', async(() => {
+    const currentDate = new Date(2005, 10, 9); // 9 November 2005
+    jasmine.clock().mockDate(currentDate);
+
+    const fixture = createTestComponent(`<ngl-datepicker [date]="date" [monthNames]="customMonths" [dayNamesShort]="customDays" showToday="false"></ngl-datepicker>`);
+    expectCalendar(fixture, [
+      ['29-', '30-', '31-', '01', '02', '03', '04'],
+      ['05', '06', '07', '08', '09', '10', '11'],
+      ['12', '13', '14', '15', '16', '17', '18'],
+      ['19', '20', '21', '22', '23', '24', '25'],
+      ['26', '27', '28', '29', '*30+', '01-', '02-'],
+    ], 'Sep', '2010').then(() => {
+      expect(getDayHeaders(fixture.nativeElement)).toEqual([ 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7' ]);
+    });
+  }));
+
+  it('should support custom week start', async(() => {
+    const fixture = createTestComponent(`<ngl-datepicker [date]="date" [firstDayOfWeek]="firstDayOfWeek" showToday="false"></ngl-datepicker>`);
+
+    expectCalendar(fixture, [
+      ['30-', '31-', '01', '02', '03', '04', '05'],
+      ['06', '07', '08', '09', '10', '11', '12'],
+      ['13', '14', '15', '16', '17', '18', '19'],
+      ['20', '21', '22', '23', '24', '25', '26'],
+      ['27', '28', '29', '*30+', '01-', '02-', '03-'],
+    ], 'September', '2010').then(() => {
+      expect(getDayHeaders(fixture.nativeElement)).toEqual([ 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun' ]);
+
+      fixture.componentInstance.firstDayOfWeek = 2;
+      expectCalendar(fixture, [
+        ['31-', '01', '02', '03', '04', '05', '06'],
+        ['07', '08', '09', '10', '11', '12', '13'],
+        ['14', '15', '16', '17', '18', '19', '20'],
+        ['21', '22', '23', '24', '25', '26', '27'],
+        ['28', '29', '*30+', '01-', '02-', '03-', '04-'],
+      ], 'September', '2010').then(() => {
+        expect(getDayHeaders(fixture.nativeElement)).toEqual([ 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon' ]);
+      });
+    });
+  }));
+
+  it('should handle `firstDayOfWeek` as string attribute', async(() => {
+    const fixture = createTestComponent(`<ngl-datepicker [date]="date" firstDayOfWeek="1" showToday="false"></ngl-datepicker>`);
+
+    expectCalendar(fixture, [
+      ['30-', '31-', '01', '02', '03', '04', '05'],
+      ['06', '07', '08', '09', '10', '11', '12'],
+      ['13', '14', '15', '16', '17', '18', '19'],
+      ['20', '21', '22', '23', '24', '25', '26'],
+      ['27', '28', '29', '*30+', '01-', '02-', '03-'],
+    ], 'September', '2010').then(() => {
+      expect(getDayHeaders(fixture.nativeElement)).toEqual([ 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun' ]);
+    });
+  }));
+
+  it('should handle when first day of week is after first day of month', async(() => {
+    const fixture = createTestComponent(`<ngl-datepicker [date]="date" [firstDayOfWeek]="firstDayOfWeek" showToday="false"></ngl-datepicker>`, false);
+
+    fixture.componentInstance.firstDayOfWeek = 3;
+    expectCalendar(fixture, [
+      ['01', '02', '03', '04', '05', '06', '07'],
+      ['08', '09', '10', '11', '12', '13', '14'],
+      ['15', '16', '17', '18', '19', '20', '21'],
+      ['22', '23', '24', '25', '26', '27', '28'],
+      ['29', '*30+', '01-', '02-', '03-', '04-', '05-'],
+    ], 'September', '2010').then(() => {
+      expect(getDayHeaders(fixture.nativeElement)).toEqual([ 'Wed', 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue' ]);
+
+      fixture.componentInstance.firstDayOfWeek = 4;
+      expectCalendar(fixture, [
+        ['26-', '27-', '28-', '29-', '30-', '31-', '01'],
+        ['02', '03', '04', '05', '06', '07', '08'],
+        ['09', '10', '11', '12', '13', '14', '15'],
+        ['16', '17', '18', '19', '20', '21', '22'],
+        ['23', '24', '25', '26', '27', '28', '29'],
+        ['*30+', '01-', '02-', '03-', '04-', '05-', '06-'],
+      ], 'September', '2010').then(() => {
+        expect(getDayHeaders(fixture.nativeElement)).toEqual([ 'Thu', 'Fri', 'Sat', 'Sun', 'Mon', 'Tue', 'Wed' ]);
+      });
+    });
+  }));
 });
 
 
-// Shortcut function for less boilerplate on each `it`
-function testAsync(fn: (value: ComponentFixture<TestComponent>) => void, html: string = null) {
-  return async(inject([TestComponentBuilder], (tcb: TestComponentBuilder) => {
-    if (html) {
-      tcb = tcb.overrideTemplate(TestComponent, html);
-    }
-    return tcb.createAsync(TestComponent).then(fn);
-  }));
-}
-
 @Component({
-  directives: [NglDatepicker],
   template: `<ngl-datepicker [date]="date" (dateChange)="dateChange($event)" showToday="false"></ngl-datepicker>`,
 })
 export class TestComponent {
   date = new Date(2010, 8, 30); // 30 September 2010
+  showToday: boolean;
   dateChange = jasmine.createSpy('dateChange');
+  firstDayOfWeek = 1;
+
+  customMonths = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  customDays = [ 'D1', 'D2', 'D3', 'D4', 'D5', 'D6', 'D7' ];
 }

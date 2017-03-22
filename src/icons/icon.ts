@@ -1,5 +1,4 @@
-import {Component, Input, ElementRef, Renderer, ChangeDetectionStrategy, Attribute, Optional} from '@angular/core';
-import {NglIconSvg} from './svg';
+import {Component, Input, ElementRef, Renderer, ChangeDetectionStrategy, Attribute, Optional, OnChanges} from '@angular/core';
 import {toBoolean, replaceClass} from '../util/util';
 import {NglButton} from '../buttons/button';
 import {NglButtonIcon} from '../buttons/button-icon';
@@ -8,11 +7,10 @@ export type NglIconCategory = 'action' | 'custom' | 'doctype' | 'standard' | 'ut
 
 @Component({
   selector: 'ngl-icon, [ngl-icon]',
-  templateUrl: './icon.jade',
+  templateUrl: './icon.pug',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  directives: [NglIconSvg],
 })
-export class NglIcon {
+export class NglIcon implements OnChanges {
   _icon: string;
   @Input('icon') set setIcon(icon: string) {
     this._icon = icon;
@@ -30,22 +28,23 @@ export class NglIcon {
   @Input() alt: string;
   @Input() svgClass: string | string[];
 
-  private category: NglIconCategory = 'utility';
+  category: NglIconCategory = 'utility';
+
   private button: boolean;
   private _containerClass: string[];
 
   constructor(public element: ElementRef, public renderer: Renderer,
-              @Attribute('state') private state: 'not-selected' | 'selected' | 'selected-focus',
-              @Attribute('button') button: 'not-selected' | 'selected' | 'selected-focus',
-              @Optional() private nglButton: NglButton, @Optional() private nglButtonIcon: NglButtonIcon) {
+              @Attribute('state') private state: string,
+              @Attribute('button') button: string,
+              @Optional() nglButton: NglButton, @Optional() nglButtonIcon: NglButtonIcon) {
 
-    this.button = button === null ? !!(this.nglButton || this.nglButtonIcon) : toBoolean(button);
+    this.button = button === null ? !!(nglButton || nglButtonIcon) : toBoolean(button);
     if (state) {
       renderer.setElementClass(element.nativeElement, `slds-text-${state}`, true);
     }
   }
 
-  ngOnChanges() {
+  ngOnChanges(changes?: any) {
     const { containerClass } = this;
     replaceClass(this, this._containerClass, containerClass);
     this._containerClass = containerClass;
@@ -61,8 +60,8 @@ export class NglIcon {
       classes.push(`${prefix}--${this.size}`);
     }
 
-    if (this.type || (this.category === 'utility' && !this.button)) {
-      classes.push(`slds-icon-text-${this.type || 'default'}`);
+    if (this.type) {
+      classes.push(`slds-icon-text-${this.type}`);
     }
 
     if (this.align || this.state) {

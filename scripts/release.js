@@ -69,7 +69,7 @@ function runVersion( version ) {
 function publish(version) {
   var deferred = q.defer();
   console.log('Publishing...');
-  child_process.exec('gulp prepublish && npm publish ./dist', function (err, stdout, stderr){
+  child_process.exec('gulp prepublish && npm publish ./node_modules/ng-lightning', function (err, stdout, stderr){
     if (err) {
       console.log('child processes failed with error code: ', err);
       deferred.reject();
@@ -77,14 +77,6 @@ function publish(version) {
       console.log(stdout);
       deferred.resolve(version);
     }
-  });
-  return deferred.promise;
-}
-
-function postVersion( version ) {
-  var deferred = q.defer();
-  bump(semver.inc(version, 'prerelease')).then(() => {
-    git.commit(`chore(release): starting new releace cycle`, [ packageFile ], deferred.resolve());
   });
   return deferred.promise;
 }
@@ -121,5 +113,4 @@ requestReleaseType(currentVersion)
 .then(preVersion)
 .then(runVersion, () => q.reject())
 .then(publish, () => q.reject())
-.then(postVersion)
 .then(push);

@@ -1,5 +1,5 @@
-import { Directive, Input, Output, EventEmitter, ElementRef, Renderer } from '@angular/core';
-import { BehaviorSubject } from 'rxjs/Rx';
+import { Directive, Input, Output, EventEmitter} from '@angular/core';
+import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import {toBoolean} from '../util/util';
 
 @Directive({
@@ -19,13 +19,11 @@ export class NglPick {
   @Input() nglPickActiveClass: string;
 
   @Output() nglPickChange = new EventEmitter();
-  @Output() private nglOptionDestroyed = new EventEmitter();
+  @Output() nglOptionDestroyed = new EventEmitter();
 
   @Input('nglPickMultiple') set setIsMultiple(isMultiple: any) {
     this.isMultiple = toBoolean(isMultiple);
   }
-
-  constructor(public element: ElementRef, private renderer: Renderer) {}
 
   ngAfterContentInit() {
     this.values.next(this.selected);

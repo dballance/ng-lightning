@@ -1,5 +1,5 @@
 import { Directive, Input, HostListener, ElementRef, Renderer } from '@angular/core';
-import { Subscription } from 'rxjs/Rx';
+import { Subscription } from 'rxjs/Subscription';
 import { NglPick } from './pick';
 
 @Directive({
@@ -31,7 +31,7 @@ export class NglPickOption {
   @HostListener('click')
   @HostListener('keydown.Space', ['$event'])
   @HostListener('keydown.Enter', ['$event'])
-  pick(evt: Event) {
+  pick(evt?: Event) {
     if (evt) {
       evt.preventDefault();
     }

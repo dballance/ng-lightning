@@ -1,16 +1,21 @@
-import {Component, ContentChild, ChangeDetectionStrategy, Input, Attribute, Output, EventEmitter, ElementRef, Renderer, ChangeDetectorRef, ViewChild} from '@angular/core';
-import {Observable, BehaviorSubject} from 'rxjs/Rx';
-import {NglLookupItemTemplate} from './item';
-import {NglPill} from '../pills/pill';
-import {NglPillRemove} from '../pills/pill-remove';
-import {NglIconSvg} from '../icons/svg';
+import {Component, ContentChild, ChangeDetectionStrategy, Input, Output, EventEmitter, ElementRef, Renderer, ChangeDetectorRef, ViewChild, TemplateRef, OnChanges} from '@angular/core';
+import {Observable} from 'rxjs/Observable';
+import {BehaviorSubject} from 'rxjs/BehaviorSubject';
+import 'rxjs/add/observable/of';
+import 'rxjs/add/operator/skip';
+import 'rxjs/add/operator/do';
+import 'rxjs/add/operator/debounceTime';
+import 'rxjs/add/operator/distinctUntilChanged';
+import 'rxjs/add/operator/switchMap';
+import 'rxjs/add/operator/publish';
+import {NglLookupItemTemplate, NglLookupLabelTemplate} from './item';
+import {NglLookupScopeItem} from './scope-item';
 import {uniqueId, isObject} from '../util/util';
 
 @Component({
   selector: 'ngl-lookup',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './lookup.jade',
-  directives: [NglPill, NglPillRemove, NglIconSvg],
+  templateUrl: './lookup.pug',
   styles: [
     `.slds-dropdown__item--active > a {
         outline: 0;
@@ -19,12 +24,16 @@ import {uniqueId, isObject} from '../util/util';
     }`,
   ],
 })
-export class NglLookup {
+export class NglLookup implements OnChanges {
 
   @ContentChild(NglLookupItemTemplate) itemTemplate: NglLookupItemTemplate;
+  @ContentChild(NglLookupScopeItem) polymorphic: NglLookupScopeItem;
 
   @Input() placeholder: string;
+  @Input() noResultsText = 'No results found';
   @Input() searchIcon: boolean = true;
+
+  openScope: boolean = false;
 
   @Input() set value(value: string) {
     if (value !== this.inputSubject.getValue()) {
@@ -44,9 +53,16 @@ export class NglLookup {
   }
   @Output() pickChange = new EventEmitter();
 
+  @Input() label: string;
+  @ContentChild(NglLookupLabelTemplate) labelTemplate: NglLookupLabelTemplate;
+
   @ViewChild('lookupInput') inputEl: ElementRef;
 
+  @Input() debounce: number = 200;
+
   inputId = uniqueId('lookup_input');
+
+  _label: string | TemplateRef<any>;
 
   private globalClickUnsubscriber: Function = null;
   private _open = false;
@@ -74,12 +90,7 @@ export class NglLookup {
   private lastUserInput: string;
   private pendingFocus = false;
 
-  constructor(private element: ElementRef, private renderer: Renderer, private detector: ChangeDetectorRef,
-              @Attribute('debounce') private debounce: number) {
-    if (this.debounce === null) {
-      this.debounce = 200;
-    }
-  }
+  constructor(private element: ElementRef, private renderer: Renderer, private detector: ChangeDetectorRef) {}
 
   handlePick(item: any) {
     this.pickChange.emit(item);
@@ -117,12 +128,18 @@ export class NglLookup {
     });
   }
 
+  ngOnChanges(changes?: any) {
+    this._label = this.labelTemplate ? this.labelTemplate.templateRef : (this.label || '');
+  }
+
   resolveLabel(item: any) {
     return this.field && isObject(item) ? item[this.field] : item;
   }
 
-  close(evt: KeyboardEvent) {
-    evt.preventDefault();
+  close(evt: KeyboardEvent = null) {
+    if (evt) {
+      evt.preventDefault();
+    }
     this.open = false;
   }
 
@@ -138,7 +155,7 @@ export class NglLookup {
     return index < 0 ? null : `${this.inputId}_active_${index}`;
   }
 
-  pickActive(evt: KeyboardEvent) {
+  pickActive() {
     if (this.activeIndex < 0) return;
     this.handlePick(this.suggestions[this.activeIndex]);
   }
@@ -152,6 +169,19 @@ export class NglLookup {
     // Update input value based on active option
     const value = this.activeIndex === -1 ? this.lastUserInput : this.resolveLabel(this.suggestions[this.activeIndex]);
     this.inputValue = value;
+  }
+
+  onScopeOpen(open: boolean) {
+    if (open) {
+      this.close();
+    }
+    this.openScope = open;
+  }
+
+  scopeSelect(scope: any) {
+    this.openScope = false;
+    this.focus();
+    this.polymorphic.scopeChange.emit(scope);
   }
 
   ngAfterViewChecked() {

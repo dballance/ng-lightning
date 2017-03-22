@@ -20,6 +20,7 @@ module.exports = function(config) {
 
     files: [
         // Polyfills
+<<<<<<< HEAD
         {pattern: 'node_modules/core-js/client/core.js', included: true, watched: false},
 
         // Intl pollyfill
@@ -27,14 +28,19 @@ module.exports = function(config) {
 
         // Typescript helpers polyfill
         {pattern: 'node_modules/ts-helpers/index.js', included: true, watched: false},
+=======
+        {pattern: 'node_modules/core-js/client/shim.min.js', included: true, watched: false},
+>>>>>>> upstream/master
 
         // System.js for module loading
-        {pattern: 'node_modules/systemjs/dist/system-polyfills.js', included: true, watched: false},
         {pattern: 'node_modules/systemjs/dist/system.src.js', included: true, watched: false},
 
         // Zone.js
-        {pattern: 'node_modules/zone.js/dist/zone.js', included: true, watched: false},
-        {pattern: 'node_modules/zone.js/dist/jasmine-patch.js', included: true, watched: false},
+        {pattern: 'node_modules/zone.js/dist/zone.min.js', included: true, watched: false},
+        {pattern: 'node_modules/zone.js/dist/long-stack-trace-zone.min.js', included: true, watched: false},
+        {pattern: 'node_modules/zone.js/dist/proxy.js', included: true, watched: false},
+        {pattern: 'node_modules/zone.js/dist/sync-test.js', included: true, watched: false},
+        {pattern: 'node_modules/zone.js/dist/jasmine-patch.min.js', included: true, watched: false},
         {pattern: 'node_modules/zone.js/dist/async-test.js', included: true, watched: false},
         {pattern: 'node_modules/zone.js/dist/fake-async-test.js', included: true, watched: false},
 
@@ -52,10 +58,6 @@ module.exports = function(config) {
 
         // Our built application code
         {pattern: 'temp/**/*.js', included: false, watched: true},
-
-        // paths to support debugging with source maps in dev tools
-        {pattern: 'src/**/*.ts', included: false, watched: false},
-        {pattern: 'temp/**/*.js.map', included: false, watched: false},
 
         // fixtures
         {pattern: 'test/fixtures/**', watched: false, included: false, served: true},
@@ -86,7 +88,7 @@ module.exports = function(config) {
     port: isTravis ? 9876 : 23011,
     colors: true,
     logLevel: config.LOG_INFO,
-    autoWatch: true,
+    autoWatch: false,
     browsers: [isTravis ? 'Firefox' : 'Chrome'],
     customLaunchers: {
       IE_no_addons: {
@@ -94,7 +96,7 @@ module.exports = function(config) {
         flags: ['-extoff']
       }
     },
-    singleRun: false,
+    singleRun: true,
   };
 
   if (isSaucelabs) {
@@ -103,12 +105,11 @@ module.exports = function(config) {
     cfg.reporters.push('saucelabs');
     cfg.sauceLabs = {
       tunnelIdentifier: isTravis ? process.env.TRAVIS_JOB_NUMBER : 'ng-lightning',
-      connectOptions: {
-        logfile: './saucelabs.log',
-      },
     };
-    cfg.captureTimeout = 120000;
-    cfg.browserNoActivityTimeout = 120000;
+    cfg.captureTimeout = 60000;
+    cfg.browserDisconnectTimeout = 60000;
+    cfg.browserDisconnectTolerance = 3;
+    cfg.browserNoActivityTimeout = 60000;
   }
 
   config.set(cfg);

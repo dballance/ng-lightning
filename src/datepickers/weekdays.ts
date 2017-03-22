@@ -1,28 +1,26 @@
-import {Component, ChangeDetectionStrategy} from '@angular/core';
-import {DatePipe} from '@angular/common';
+import {Component, Input, ChangeDetectionStrategy, OnChanges} from '@angular/core';
 
 @Component({
   selector: 'tr[nglWeekdays]',
-  templateUrl: './weekdays.jade',
+  templateUrl: './weekdays.pug',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class NglDatepickerWeekdays {
+export class NglDatepickerWeekdays implements OnChanges {
+
+  @Input() dayNamesShort: string[];
+  @Input() dayNamesLong: string[];
+  @Input() firstDayOfWeek: number;
 
   weekdays: any[] = [];
 
-  constructor(private datePipe: DatePipe) {
-    this.render();
-  }
-
-  render() {
-    let dayNumber = 11; // 11 August 2013 is Sunday
-
+  ngOnChanges(changes?: any) {
+    this.weekdays = [];
     for (let i = 0; i < 7; i++) {
-      const date = new Date(2013, 7, dayNumber++, 12);
+      const offset = (this.firstDayOfWeek + i) % 7;
       this.weekdays.push({
         id: `weekday-${i}`,
-        label: this.datePipe.transform(date, 'EEE'),
-        title: this.datePipe.transform(date, 'EEEE'),
+        label: this.dayNamesShort[offset],
+        title: this.dayNamesLong[offset],
       });
     }
   }

@@ -6,20 +6,28 @@ export type NglPage = { number: number | string, disabled?: boolean };
 @Component({
   selector: 'ngl-pagination',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  templateUrl: './pagination.jade',
+  templateUrl: './pagination.pug',
   exportAs: 'nglPagination',
 })
 export class NglPagination implements OnChanges {
 
   pages: NglPage[] = [];
 
-  @Input('page') current: number | string;
+  current: number;
+  @Input() set page(page: number | string) {
+    this.current = +page;
+  }
   @Output() pageChange = new EventEmitter<number>();
 
   @Input() total: number | string;
   @Input() perPage: number | string = 10;
   @Input() limit: number | string = 0;
   @Input() boundaryNumbers: number = 0;
+  @Input() firstText = 'First';
+  @Input() previousText = 'Previous';
+  @Input() nextText = 'Next';
+  @Input() lastText = 'Last';
+
   @Input() set boundaryLinks(boundaryLinks: string | boolean) {
     this._boundaryLinks = toBoolean(boundaryLinks);
   }
@@ -43,7 +51,7 @@ export class NglPagination implements OnChanges {
     this.pageChange.emit(+page);
   }
 
-  ngOnChanges() {
+  ngOnChanges(changes?: any) {
     this.totalPages = Math.ceil(+this.total / +this.perPage);
 
     const { start, end } = this.limits();
@@ -82,10 +90,10 @@ export class NglPagination implements OnChanges {
   }
 
   get start(): number {
-    return Math.max(1 + (+this.current - 1) * +this.perPage, 0);
+    return Math.min(Math.max(1 + (+this.current - 1) * +this.perPage, 0), +this.total);
   }
 
-  get end() {
+  get end(): number {
     return Math.min(this.start + (+this.perPage - 1), +this.total);
   }
 

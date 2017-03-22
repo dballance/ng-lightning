@@ -1,12 +1,17 @@
 /**
  * Testing helpers
  */
-import {addProviders, ComponentFixture} from '@angular/core/testing';
-import {provideNglConfig} from '../../src/config/config';
+import {TestBed, ComponentFixture} from '@angular/core/testing';
+import {NglConfig, NGL_CONFIG} from '../../src/config/config';
 
 // Default configuration for every TestComponent
 beforeEach(() => {
-  addProviders([provideNglConfig()]);
+  TestBed.configureTestingModule({
+    providers: [
+      NglConfig,
+      {provide: NGL_CONFIG, useValue: null},
+    ],
+  });
 });
 
 export function dispatchKeyEvent(fixture: ComponentFixture<any>, predicate: any, key: string, indexOf: number = -1) {
@@ -21,24 +26,24 @@ export function selectElements(element: HTMLElement, selector: string): HTMLElem
   return [].slice.call(element.querySelectorAll(selector));
 }
 
-/** 
+
+/**
  * IE11 doesn't support dispatching new Event directly -- must utilize document.createEvent method.
  */
-export function dispatchMouseEvent(el: HTMLElement, type: string): void {
-   const event = document.createEvent('MouseEvent');
-    event.initMouseEvent(
-        type,
-        true, true,
-        window, null,
-        0, 0, 0, 0,
-        false, false, false, false,
-        0, null
-    );
-    el.dispatchEvent(event);
+export function dispatchEvent(el: HTMLElement, type: string, canBubble = true) {
+  const evt = document.createEvent('HTMLEvents');
+  evt.initEvent(type, canBubble, true);
+  el.dispatchEvent(evt);
 }
 
-export function dispatchFocusEvent(el: HTMLElement, type: 'focus' | 'blur'): void {
-  const event = document.createEvent('Event');
-  event.initEvent(type, true, true);
-  el.dispatchEvent(event);
+// Shortcut function for less boilerplate
+export function createGenericTestComponent<T>(type: {new (...args: any[]): T}, html?: string, detectChanges = true): ComponentFixture<T> {
+  if (html) {
+    TestBed.overrideComponent(type, {set: {template: html}});
+  }
+  const fixture = TestBed.createComponent(type);
+  if (detectChanges) {
+    fixture.detectChanges();
+  }
+  return fixture as ComponentFixture<T>;
 }

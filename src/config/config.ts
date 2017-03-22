@@ -1,12 +1,66 @@
-import {provide, Provider} from '@angular/core';
+import {Injectable, EventEmitter, OpaqueToken, Inject} from '@angular/core';
+import {INglConfig} from './config.interface';
 
+export const NGL_CONFIG = new OpaqueToken('NGL_CONFIG');
+
+@Injectable()
 export class NglConfig {
-  svgPath = 'assets/icons';
+
+  _emitter = new EventEmitter();
+
+  private values: INglConfig = {
+    svgPath: 'assets/icons',
+    ratingColorOn: '#FFB75D',
+    ratingColorOff: '#54698D',
+  };
+
+  constructor(@Inject(NGL_CONFIG) config: INglConfig = null) {
+    this.values = Object.assign({}, this.values, config || {});
+  }
+
+  update(config: INglConfig) {
+    this.values = Object.assign({}, this.values, config || {});
+    this._emitter.emit();
+  }
+
+  get(key: string) {
+    return (<any>this.values)[key];
+  }
 }
 
-const defaultConfig = new NglConfig();
+// Intrenal decorator
+export function NglConfigurable(config = {changeDetectorProperty: 'cd'}) {
+  return function (constructor: Function) {
+    let { ngOnInit, ngOnDestroy } = constructor.prototype;
 
-export function provideNglConfig(config: NglConfig = <NglConfig>{}): Provider[] {
-  const useValue = Object.assign({}, defaultConfig, config || {});
-  return [ provide(NglConfig, {useValue}) ];
-}
+    constructor.prototype.ngOnInit = function() {
+      const changeDetectorRef = this[config.changeDetectorProperty];
+
+      if (!changeDetectorRef || !changeDetectorRef.markForCheck) {
+        throw Error(`NglConfig: invalid ChangeDetectorRef at property "${config.changeDetectorProperty}"`);
+      }
+
+      this.nglConfigSubscription = this.config._emitter.subscribe(() => {
+        if (this.nglOnConfigChanges) {
+          this.nglOnConfigChanges();
+        }
+        changeDetectorRef.markForCheck();
+      });
+
+      if (ngOnInit) {
+        ngOnInit.call(this);
+      }
+    };
+
+    constructor.prototype.ngOnDestroy = function() {
+      if (this.nglConfigSubscription) {
+        this.nglConfigSubscription.unsubscribe();
+        this.nglConfigSubscription = null;
+      }
+
+      if (ngOnDestroy) {
+        ngOnDestroy.call(this);
+      }
+    };
+  };
+};

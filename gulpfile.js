@@ -1,23 +1,27 @@
 var gulp = require('gulp');
+var path = require('path');
+var del = require('del')
 var ts = require('gulp-typescript');
-var tsProject = ts.createProject('tsconfig.json');
+var tsProject = ts.createProject('test/tsconfig.json');
 var lazypipe = require('lazypipe');
-var jade = require('jade');
+var pug = require('pug');
 var inlineTemplates = require('gulp-inline-ng2-template');
 var cache = require('gulp-cached');
+var exec = require('child_process').exec;
+var isWin = /^win/.test(process.platform);
+var executable = isWin ? 'node_modules\\.bin\\ngc.cmd' : './node_modules/.bin/ngc';
+var webpack = require('webpack');
 var argv = require('yargs')
             .boolean('failOnError').default('failOnError', false) // tslint
             .argv;
-var bundle = require('./scripts/bundle');
-
-var BUILD = tsProject.options.outDir;
 
 var PATHS = {
   src: ['src/**/*.ts','!src/**/*.spec.ts'],
-  templates: ['src/**/*.jade'],
-  spec: ['src/**/*.ts', 'test/util/*.ts'],
-  typings: 'typings/index.d.ts',
+  templates: ['src/**/*.pug'],
+  spec: ['src/**/*.ts', 'test/{util,mock}/*.ts'],
   temp: 'temp/',
+  tsInline: 'temp/inline/',
+  dist: 'node_modules/ng-lightning',
 };
 
 var TESTIE = ['IE_no_addons'];
@@ -26,22 +30,18 @@ var inlineTemplatesTask = lazypipe()
   .pipe(inlineTemplates, {
     base: '/src',
     useRelativePaths: true,
-    customFilePath: function(ext, file) {
-      inlineTemplatesTask.filepath = file;
-      return file;
-    },
-    templateProcessor: function(ext, file, cb) {
-      const rendered = jade.render(file, {
+    templateProcessor: function(filepath, ext, file, cb) {
+      const rendered = pug.render(file, {
         doctype: 'html',
-        filename: inlineTemplatesTask.filepath,
+        filename: filepath,
       });
       cb(null, rendered);
     },
-    templateExtension: '.jade',
+    templateExtension: '.pug',
   });
 
 gulp.task('clean', function() {
-  return require('del')(BUILD);
+  return del([PATHS.dist, PATHS.temp]);
 });
 
 gulp.task('lint:ts', function lint_ts_impl() {
@@ -58,31 +58,53 @@ gulp.task('lint:ts', function lint_ts_impl() {
     }));
 });
 
-gulp.task('build:ts', gulp.series('lint:ts', function build_ts_impl() {
-  var merge = require('merge2');
-
-  var tsResult = gulp.src(PATHS.src.concat(PATHS.typings), {base: 'src'})
+gulp.task('ngc:templates', function() {
+  return gulp.src(PATHS.src, {base: 'src'})
     .pipe(inlineTemplatesTask())
-    .pipe(ts(tsProject));
+    .pipe(gulp.dest(PATHS.tsInline));
+});
 
-  return merge([tsResult.dts, tsResult.js])
-    .pipe(cache('build:ts'))
-    .pipe(gulp.dest(BUILD));
+gulp.task('ngc', gulp.series('lint:ts', 'ngc:templates', function __ngc(cb) {
+  exec(`${executable} -p ./tsconfig.json`, (e) => {
+    if (e) console.log(e);
+    del('./temp/waste');
+    cb();
+  }).stdout.on('data', function(data) { console.log(data); });
 }));
 
-gulp.task('bundle', function() {
-  return bundle({mangle: false});
+gulp.task('bundle', function __bundle(done) {
+  webpack({
+    devtool: 'source-map',
+    resolve: { extensions: ['.js'] },
+    entry: path.resolve(__dirname, PATHS.dist, 'ng-lightning.js'),
+    output: {
+      filename: PATHS.dist + '/bundles/ng-lightning.umd.js',
+      library: 'ng-lightning',
+      libraryTarget: 'umd'
+    },
+    externals: [/^\@angular\//, /^rxjs\//, 'tether'], // require but don't bundle
+  }, function(err, stats) {
+    if (err) throw new Error('bundle [webpack]', err);
+    done();
+  });
 });
 
-gulp.task('bundle:min', function() {
-  return bundle({minify: true, sourceMaps: true, mangle: false});
-});
-
-gulp.task('build', gulp.series('clean', 'build:ts', gulp.parallel('bundle', 'bundle:min')));
+gulp.task('build', gulp.series('clean', 'ngc', 'bundle'));
 
 gulp.task('build:watch', function() {
-  gulp.watch([ PATHS.src, PATHS.templates ], gulp.series('build:ts', 'bundle'));
+  gulp.watch([ PATHS.src, PATHS.templates ], gulp.series('ngc', 'bundle'));
 });
+
+gulp.task('demo:clean', function() {
+  return del(['demo/**/*.ngfactory.ts', 'demo/**/*.ngsummary.json', 'demo/node_modules', 'temp/demo']);
+});
+
+gulp.task('demo:ngc', gulp.series('demo:clean', function __ngc(cb) {
+  exec(`${executable} -p ./demo/tsconfig-aot.json`, (e) => {
+    if (e) console.log(e);
+    cb();
+  }).stdout.on('data', function(data) { console.log(data); });
+}));
 
 function startKarmaServer(isTddMode, done) {
   var config = {configFile: __dirname + '/karma.conf.js', singleRun: !isTddMode, autoWatch: isTddMode};
@@ -97,19 +119,15 @@ function startKarmaServer(isTddMode, done) {
 }
 
 gulp.task('test:clean', function() {
-  return require('del')(PATHS.temp);
+  return del(PATHS.temp);
 });
 
 gulp.task('test:build', function() {
-  var sourcemaps = require('gulp-sourcemaps');
-
-  var tsResult = gulp.src(PATHS.spec.concat(PATHS.typings))
-    .pipe(sourcemaps.init())
+  var tsResult = gulp.src(PATHS.spec, {base: './'})
     .pipe(inlineTemplatesTask())
-    .pipe(ts(tsProject));
+    .pipe(tsProject());
 
   return tsResult.js
-    .pipe(sourcemaps.write('.'))
     .pipe(cache('test:build'))
     .pipe(gulp.dest(PATHS.temp));
 });
@@ -131,11 +149,7 @@ gulp.task('tdd', gulp.series('test:clean-build', function tdd_impl(done) {
 
 gulp.task('prepublish', gulp.series('build', function prepublish_impl() {
   return gulp.src(['package.json', '*.md', 'LICENSE'])
-    .pipe(gulp.dest(BUILD));
+    .pipe(gulp.dest(PATHS.dist));
 }));
-
-gulp.task('typings:clean', function() {
-  return require('del')('typings');
-});
 
 gulp.task('default', gulp.series('build'));

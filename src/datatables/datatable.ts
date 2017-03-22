@@ -1,18 +1,32 @@
-import {Component, Input, ChangeDetectorRef, ContentChildren, QueryList, ElementRef, Renderer, HostBinding, Output, EventEmitter} from '@angular/core';
-import {Subscription} from 'rxjs/Rx';
+import {Component, Input, ChangeDetectorRef, ContentChild, ContentChildren, QueryList, ElementRef, Renderer, HostBinding, Output, EventEmitter} from '@angular/core';
+import {Subscription} from 'rxjs/Subscription';
 import {NglDatatableColumn} from './column';
-import {NglInternalDatatableHeadCell} from './_head';
-import {NglInternalDatatableCell} from './_cell';
+import {NglDatatableLoadingOverlay, NglDatatableNoRowsOverlay} from './overlays';
 
 export interface INglDatatableSort {
   key: string;
   order: 'asc' | 'desc';
 };
 
+export interface INglDatatableRowClick {
+  event: Event;
+  data: any;
+};
+
 @Component({
   selector: 'table[ngl-datatable]',
-  templateUrl: './datatable.jade',
-  directives: [NglInternalDatatableHeadCell, NglInternalDatatableCell],
+  templateUrl: './datatable.pug',
+  host: {
+    '[class.slds-is-relative]': 'loading',
+  },
+  styles: [`
+    .ngl-datatable-loading {
+      position: absolute;
+      z-index: 1;
+      top: 0; left: 0; right: 0; bottom: 0;
+      background: rgba(255, 255, 255, 0.5)
+    }
+  `],
 })
 export class NglDatatable {
 
@@ -28,7 +42,21 @@ export class NglDatatable {
   @Input() sort: INglDatatableSort;
   @Output() sortChange = new EventEmitter<INglDatatableSort>();
 
+  @Input() loading: boolean = false;
+  @ContentChild(NglDatatableLoadingOverlay) loadingOverlay: NglDatatableLoadingOverlay;
+  get showLoading() {
+    return this.loading && this.loadingOverlay;
+  }
+
+  @ContentChild(NglDatatableNoRowsOverlay) noRowsOverlay: NglDatatableNoRowsOverlay;
+
+  get hasRows() {
+    return this.data && this.data.length > 0;
+  }
+
   @ContentChildren(NglDatatableColumn) columns: QueryList<NglDatatableColumn>;
+
+  @Output() onRowClick = new EventEmitter<INglDatatableRowClick>();
 
   private _columnsSubscription: Subscription;
 
@@ -40,7 +68,7 @@ export class NglDatatable {
     return column.key || index;
   }
 
-  dataTrackBy(index: number, data: any) {
+  dataTrackBy = (index: number, data: any) => {
     return this.trackByKey ? data[this.trackByKey] : index;
   }
 
@@ -54,6 +82,10 @@ export class NglDatatable {
 
   getColumnSortOrder(column: NglDatatableColumn) {
     return this.sort && column.key === this.sort.key ? this.sort.order : null;
+  }
+
+  rowClick(event: Event, data: any) {
+    this.onRowClick.emit({ event, data });
   }
 
   ngAfterContentInit() {

@@ -1,19 +1,11 @@
 import {Component, Input, Output, EventEmitter, ChangeDetectionStrategy, HostListener} from '@angular/core';
-import {DatePipe} from '@angular/common';
 import {uniqueId, toBoolean} from '../util/util';
-import {NglButtonIcon} from '../buttons/button-icon';
-import {NglIcon} from '../icons/icon';
-import {NglDatepickerWeekdays} from './weekdays';
-import {NglDay} from './day';
-import {NglDatepickerYear} from './year';
 
 export type NglInternalDate = { year: number, month: number, day: number, disabled?: boolean};
 
 @Component({
   selector: 'ngl-datepicker',
-  templateUrl: './datepicker.jade',
-  directives: [NglButtonIcon, NglIcon, NglDay, NglDatepickerWeekdays, NglDatepickerYear],
-  providers: [DatePipe],
+  templateUrl: './datepicker.pug',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'aria-hidden': 'false',
@@ -23,9 +15,12 @@ export type NglInternalDate = { year: number, month: number, day: number, disabl
   styles: [`:host { display: block; }`],
 })
 export class NglDatepicker {
+  @Input() monthNames = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  @Input() dayNamesShort = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  @Input() dayNamesLong = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursda', 'Friday', 'Saturday'];
+
   date: NglInternalDate;
   current: NglInternalDate;
-
   @Input('date') set _date(date: Date) {
     this.date = this.parseDate(date);
     if (this.date) {
@@ -33,19 +28,22 @@ export class NglDatepicker {
     }
     this.render();
   }
+  @Output() dateChange = new EventEmitter();
 
   showToday = true;
   @Input('showToday') set _showToday(showToday: boolean) {
     this.showToday = toBoolean(showToday);
   }
 
-  @Output() dateChange = new EventEmitter();
+  firstDayOfWeek = 0;
+  @Input('firstDayOfWeek') set _firstDayOfWeek(firstDayOfWeek: number) {
+    this.firstDayOfWeek = +firstDayOfWeek;
+    this.render();
+  }
 
   weeks: NglInternalDate[];
   uid = uniqueId('datepicker');
-  private monthLabel: string;
-
-  constructor(private datePipe: DatePipe) {}
+  monthLabel: string;
 
   moveYear(year: string | number) {
     this.current.year = +year;
@@ -61,7 +59,7 @@ export class NglDatepicker {
   @HostListener('keydown.PageDown', ['$event', '"MoveMonth"', '1'])
   @HostListener('keydown.Home', ['$event', '"MoveTo"', '1'])
   @HostListener('keydown.End', ['$event', '"MoveTo"', '31'])
-  keyboardHandler($event: KeyboardEvent, code: string, param?: string) {
+  keyboardHandler($event: KeyboardEvent, code: string, param?: number | string) {
     if ($event) {
       $event.preventDefault();
       $event.stopPropagation();
@@ -126,7 +124,7 @@ export class NglDatepicker {
     }
 
     const { year, month, day } = this.current;
-    this.monthLabel = this.datePipe.transform(new Date(year, month, 1), 'MMMM');
+    this.monthLabel = this.monthNames[month];
 
     const days = this.daysInMonth(year, month);
 
@@ -148,11 +146,11 @@ export class NglDatepicker {
   }
 
   private daysInPreviousMonth(year: number, month: number) {
-    const first = new Date(year, month, 1);
-    const offset = first.getDay();
+    const firstIndex = (new Date(year, month, 1)).getDay();
     const last = new Date(year, month, 0).getDate();
+    const numDays = (7 + firstIndex - this.firstDayOfWeek) % 7;
 
-    return this.getDayObjects(year, month - 1, last - offset + 1, last, true);
+    return this.getDayObjects(year, month - 1, last - numDays + 1, last, true);
   }
 
   private daysInNextMonth(year: number, month: number, numOfDays: number) {

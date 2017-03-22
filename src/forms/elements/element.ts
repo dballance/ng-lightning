@@ -1,54 +1,59 @@
-import {Component, Input, ChangeDetectionStrategy, ChangeDetectorRef, ContentChild, HostBinding, TemplateRef} from '@angular/core';
-import {uniqueId} from '../../util/util';
-import {NglFormInput, NglFormCheckbox} from './input';
+import {Component, Input, ChangeDetectionStrategy, ChangeDetectorRef, ContentChild, TemplateRef, OnChanges, AfterContentInit} from '@angular/core';
+import {uniqueId, toBoolean} from '../../util/util';
+import {NglFormInput} from './input';
 import {NglFormLabelTemplate, getFormLabel} from '../form-label';
-import {NglInternalOutlet} from '../../util/outlet';
 
 @Component({
   selector: 'ngl-form-element',
-  templateUrl: './element.jade',
-  directives: [NglInternalOutlet],
+  templateUrl: './element.pug',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class.slds-form-element]': 'true',
+    '[class.slds-has-error]': '!!error',
   },
   styles: [`:host { display: block; }`],
 })
-export class NglFormElement {
+export class NglFormElement implements OnChanges, AfterContentInit {
   @ContentChild(NglFormInput) contentEl: NglFormInput;
 
-  @Input('nglFormLabel') label: string;
+  @Input('label') labelStr: string;
   @ContentChild(NglFormLabelTemplate) labelTpl: NglFormLabelTemplate;
 
-  @Input('nglFormError') set setError(error: string) {
-    this.error = error;
-    if (this.contentEl) {
-      this.setInputErrorId();
-    }
-  }
-
-  @HostBinding('class.slds-has-error') error: string;
+  @Input() error: string;
 
   uid = uniqueId('form_element');
 
   required = false;
 
-  get _label(): TemplateRef<any> | string {
-    return getFormLabel(this.label, this.labelTpl);
-  }
+  _label: TemplateRef<any> | string;
 
-  get isCheckbox() {
-    return this.contentEl instanceof NglFormCheckbox;
-  }
+  constructor(protected detector: ChangeDetectorRef) {}
 
-  constructor(public detector: ChangeDetectorRef) {}
-
-  ngAfterContentInit() {
-    this.contentEl.setup(this.uid);
+  ngOnChanges(changes?: any) {
+    this.setFormLabel();
     this.setInputErrorId();
   }
 
-  private setInputErrorId() {
+  ngAfterContentInit() {
+    if (!this.contentEl) {
+      throw Error(`Couldn't find an input, textarea or select with [nglFormControl] attribute inside <ngl-form-element>`);
+    }
+    this.contentEl.id = this.uid;
+    this.setInputErrorId();
+    this.setFormLabel();
+  }
+
+  setRequired(required: string | boolean) {
+    this.required = toBoolean(required);
+    this.detector.markForCheck();
+  }
+
+  protected setInputErrorId() {
+    if (!this.contentEl) return;
     this.contentEl.describedBy = this.error ? `error_${this.uid}` : null;
+  }
+
+  protected setFormLabel() {
+    this._label = getFormLabel(this.labelStr, this.labelTpl);
   }
 };

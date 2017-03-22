@@ -1,7 +1,10 @@
-import {inject, async, TestComponentBuilder, ComponentFixture} from '@angular/core/testing';
+import {TestBed, ComponentFixture} from '@angular/core/testing';
 import {Component} from '@angular/core';
-import {selectElements} from '../../test/util/helpers';
-import {NGL_DATATABLE_DIRECTIVES} from './directives';
+import {createGenericTestComponent, selectElements} from '../../test/util/helpers';
+import {NglDatatablesModule} from './module';
+
+const createTestComponent = (html?: string, detectChanges?: boolean) =>
+  createGenericTestComponent(TestComponent, html, detectChanges) as ComponentFixture<TestComponent>;
 
 function getHeadings(element: HTMLElement) {
   return selectElements(element, 'thead th');
@@ -15,6 +18,10 @@ function getHeadingsText(element: HTMLElement) {
   return getHeadings(element).map(getHeadingText);
 }
 
+function getHeadingsTitle(element: HTMLElement) {
+  return getHeadings(element).map(el => el.querySelector('.slds-truncate').getAttribute('title'));
+}
+
 function getRows(element: HTMLElement): HTMLTableRowElement[] {
   return <HTMLTableRowElement[]>selectElements(element, 'tbody tr');
 }
@@ -25,6 +32,10 @@ function getRowData(element: HTMLTableRowElement) {
 
 function getData(element: HTMLElement) {
   return getRows(element).map(row => getRowData(row));
+}
+
+function getLoadingEl(element: HTMLElement) {
+  return element.querySelector('table > .ngl-datatable-loading');
 }
 
 function expectSortedHeadings(element: HTMLElement, expected: string[]) {
@@ -53,8 +64,10 @@ function expectSortedHeadings(element: HTMLElement, expected: string[]) {
 
 describe('`NglDatatable`', () => {
 
-  it('should render head and body correctly', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
+  beforeEach(() => TestBed.configureTestingModule({declarations: [TestComponent], imports: [NglDatatablesModule]}));
+
+  it('should render head and body correctly', () => {
+    const fixture = createTestComponent();
 
     const tableEl = fixture.nativeElement.firstElementChild;
     expect(tableEl).toHaveCssClass('slds-table');
@@ -62,17 +75,17 @@ describe('`NglDatatable`', () => {
     expect(tableEl).toHaveCssClass('slds-table--striped');
 
     expect(getHeadingsText(fixture.nativeElement)).toEqual(['ID', 'Name', 'Number']);
+    expect(getHeadingsTitle(fixture.nativeElement)).toEqual(['ID', 'Name', 'Number']);
     expect(getData(fixture.nativeElement)).toEqual([
       [ '1', 'PP', '80' ],
       [ '2', 'AB', '10' ],
       [ '3', 'KB', '13' ],
       [ '4', 'EB', '14' ],
     ]);
-  }));
+  });
 
-  it('should appy bordered and striped based on input', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
-
+  it('should appy bordered and striped based on input', () => {
+    const fixture = createTestComponent(`<table ngl-datatable [striped]="striped" [bordered]="bordered"></table>`);
     const tableEl = fixture.nativeElement.firstElementChild;
     expect(tableEl).toHaveCssClass('slds-table');
     expect(tableEl).not.toHaveCssClass('slds-table--bordered');
@@ -87,11 +100,10 @@ describe('`NglDatatable`', () => {
     fixture.detectChanges();
     expect(tableEl).toHaveCssClass('slds-table--striped');
     expect(tableEl).toHaveCssClass('slds-table--bordered');
-  }, `<table ngl-datatable [striped]="striped" [bordered]="bordered"></table>`));
+  });
 
-  it('should appy bordered and striped based on input', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
-
+  it('should appy bordered and striped based on input', () => {
+    const fixture = createTestComponent(`<table ngl-datatable [striped]="striped" [bordered]="bordered"></table>`);
     const tableEl = fixture.nativeElement.firstElementChild;
     expect(tableEl).toHaveCssClass('slds-table');
     expect(tableEl).not.toHaveCssClass('slds-table--bordered');
@@ -106,9 +118,10 @@ describe('`NglDatatable`', () => {
     fixture.detectChanges();
     expect(tableEl).toHaveCssClass('slds-table--striped');
     expect(tableEl).toHaveCssClass('slds-table--bordered');
-  }, `<table ngl-datatable [striped]="striped" [bordered]="bordered"></table>`));
+  });
 
-  it('should show/hide column correctly', testAsync((fixture: ComponentFixture<TestComponent>) => {
+  it('should show/hide column correctly', () => {
+    const fixture = createTestComponent(null, false);
     fixture.componentInstance.exists = false;
     fixture.detectChanges();
 
@@ -129,18 +142,11 @@ describe('`NglDatatable`', () => {
       [ '3', 'KB', '13' ],
       [ '4', 'EB', '14' ],
     ]);
-  }));
+  });
 
-  it('should support custom cell template per column', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.detectChanges();
-
-    expect(getData(fixture.nativeElement)).toEqual([
-      [ '1:', '0 = PP', '80' ],
-      [ '2:', '1 = AB', '10' ],
-      [ '3:', '2 = KB', '13' ],
-      [ '4:', '3 = EB', '14' ],
-    ]);
-  }, `<table ngl-datatable [data]="data">
+  it('should support custom cell template per column', () => {
+    const fixture = createTestComponent(`
+      <table ngl-datatable [data]="data">
         <ngl-datatable-column key="id">
           <template nglDatatableCell let-value>{{value}}:</template>
         </ngl-datatable-column>
@@ -148,10 +154,37 @@ describe('`NglDatatable`', () => {
           <template nglDatatableCell let-row="row" let-i="index">{{i}} = {{row.name}}</template>
         </ngl-datatable-column>
         <ngl-datatable-column key="number"></ngl-datatable-column>
-      </table>`
-  ));
+      </table>`);
+    expect(getData(fixture.nativeElement)).toEqual([
+      [ '1:', '0 = PP', '80' ],
+      [ '2:', '1 = AB', '10' ],
+      [ '3:', '2 = KB', '13' ],
+      [ '4:', '3 = EB', '14' ],
+    ]);
+  });
 
-  it('should support custom cell class per column', testAsync((fixture: ComponentFixture<TestComponent>) => {
+  it('should support custom header class per column', () => {
+    const fixture = createTestComponent(`
+      <table ngl-datatable [data]="data">
+        <ngl-datatable-column headClass="class1"></ngl-datatable-column>
+        <ngl-datatable-column [headClass]="{ class2: exists }"></ngl-datatable-column>
+      </table>`);
+
+    const rows = getHeadings(fixture.nativeElement);
+    expect(rows[0]).toHaveCssClass('class1');
+    expect(rows[1]).toHaveCssClass('class2');
+
+    fixture.componentInstance.exists = false;
+    fixture.detectChanges();
+    expect(rows[1]).not.toHaveCssClass('class2');
+  });
+
+  it('should support custom cell class per column', () => {
+    const fixture = createTestComponent(`
+      <table ngl-datatable [data]="data">
+        <ngl-datatable-column [cellClass]="class1"></ngl-datatable-column>
+        <ngl-datatable-column [cellClass]="class2"></ngl-datatable-column>
+      </table>`);
     fixture.componentInstance.class1 = 'custom-class1';
     fixture.detectChanges();
 
@@ -169,13 +202,14 @@ describe('`NglDatatable`', () => {
       expect(second).toHaveCssClass('apply-me');
       expect(second).toHaveCssClass('apply-this');
     });
-  }, `<table ngl-datatable [data]="data">
-        <ngl-datatable-column [cellClass]="class1"></ngl-datatable-column>
-        <ngl-datatable-column [cellClass]="class2"></ngl-datatable-column>
-      </table>`
-  ));
+  });
 
-  it('should handle sortable columns', testAsync((fixture: ComponentFixture<TestComponent>) => {
+  it('should handle sortable columns', () => {
+    const fixture = createTestComponent(`
+      <table ngl-datatable [data]="data">
+        <ngl-datatable-column key="id" sortable></ngl-datatable-column>
+        <ngl-datatable-column [sortable]="sortable"></ngl-datatable-column>
+      </table>`);
     fixture.componentInstance.sortable = false;
     fixture.detectChanges();
 
@@ -191,13 +225,15 @@ describe('`NglDatatable`', () => {
     fixture.detectChanges();
     expect(second).toHaveCssClass('slds-is-sortable');
     expect(second.querySelector('a')).toBeDefined();
-  }, `<table ngl-datatable [data]="data">
-        <ngl-datatable-column key="id" sortable></ngl-datatable-column>
-        <ngl-datatable-column [sortable]="sortable"></ngl-datatable-column>
-      </table>`
-  ));
+  });
 
-  it('should display sorting state', testAsync((fixture: ComponentFixture<TestComponent>) => {
+  it('should display sorting state', () => {
+    const fixture = createTestComponent(`
+      <table ngl-datatable [data]="data" [sort]="sort">
+        <ngl-datatable-column heading="ID" key="id" sortable></ngl-datatable-column>
+        <ngl-datatable-column heading="Name" key="name" sortable></ngl-datatable-column>
+        <ngl-datatable-column heading="Number" key="number"></ngl-datatable-column>
+      </table>`);
     fixture.componentInstance.sort = {key: 'id', order: 'asc'};
     fixture.detectChanges();
     expectSortedHeadings(fixture.nativeElement, ['+ID', 'Name', 'Number']);
@@ -213,16 +249,16 @@ describe('`NglDatatable`', () => {
     fixture.componentInstance.sort = {key: 'name', order: 'asc'};
     fixture.detectChanges();
     expectSortedHeadings(fixture.nativeElement, ['ID', '+Name', 'Number']);
-  }, `<table ngl-datatable [data]="data" [sort]="sort">
+  });
+
+  it('should sort when clicking on sortable header', () => {
+    const fixture = createTestComponent(`
+      <table ngl-datatable [data]="data" [sort]="sort" (sortChange)="sortChange($event)">
         <ngl-datatable-column heading="ID" key="id" sortable></ngl-datatable-column>
         <ngl-datatable-column heading="Name" key="name" sortable></ngl-datatable-column>
         <ngl-datatable-column heading="Number" key="number"></ngl-datatable-column>
-      </table>`
-  ));
-
-  it('should sort when clicking on sortable header', testAsync((fixture: ComponentFixture<TestComponent>) => {
+      </table>`);
     fixture.componentInstance.sort = {key: 'id', order: 'desc'};
-    fixture.componentInstance.sortChange = jasmine.createSpy('sortChange');
     fixture.detectChanges();
     expect(fixture.componentInstance.sortChange).not.toHaveBeenCalled();
 
@@ -233,16 +269,15 @@ describe('`NglDatatable`', () => {
 
     headingLinks[1].click();
     expect(fixture.componentInstance.sortChange).toHaveBeenCalledWith({ key: 'name', order: 'desc' });
-  }, `<table ngl-datatable [data]="data" [sort]="sort" (sortChange)="sortChange($event)">
-        <ngl-datatable-column heading="ID" key="id" sortable></ngl-datatable-column>
-        <ngl-datatable-column heading="Name" key="name" sortable></ngl-datatable-column>
-        <ngl-datatable-column heading="Number" key="number"></ngl-datatable-column>
-      </table>`
-  ));
+  });
 
-  it('should not re-render templates in cell if no input has changed', testAsync((fixture: ComponentFixture<TestComponent>) => {
-    fixture.componentInstance.cb = jasmine.createSpy('cb').and.callThrough();
-    fixture.detectChanges();
+  it('should not re-render templates in cell if no input has changed', () => {
+    const fixture = createTestComponent(`
+      <table ngl-datatable [data]="data">
+        <ngl-datatable-column>
+          <template nglDatatableCell><button type="button" (click)="cb()"></button></template>
+        </ngl-datatable-column>
+      </table>`);
     expect(fixture.componentInstance.cb).not.toHaveBeenCalled();
 
     const button1 = fixture.nativeElement.querySelector('button');
@@ -252,27 +287,85 @@ describe('`NglDatatable`', () => {
     const button2 = fixture.nativeElement.querySelector('button');
     expect(button1).toBe(button2);
     expect(fixture.componentInstance.cb).toHaveBeenCalled();
-  }, `<table ngl-datatable [data]="data">
-        <ngl-datatable-column>
-          <template nglDatatableCell><button type="button" (click)="cb()"></button></template>
-        </ngl-datatable-column>
-      </table>`
-  ));
+  });
+
+  it('should be able to render a loading overlay', () => {
+    const fixture = createTestComponent(`
+      <table ngl-datatable [data]="data" [loading]="loading">
+        <template nglLoadingOverlay>Loading...</template>
+      </table>`);
+
+    expect(getLoadingEl(fixture.nativeElement)).toBeFalsy();
+
+    fixture.componentInstance.loading = true;
+    fixture.detectChanges();
+
+    const el = getLoadingEl(fixture.nativeElement);
+    expect(el.textContent.trim()).toBe('Loading...');
+  });
+
+  it('should show a custom message when no data available', () => {
+    const fixture = createTestComponent(`
+      <table ngl-datatable>
+        <template nglNoRowsOverlay>No data available in table!</template>
+      </table>`);
+    expect(getData(fixture.nativeElement)).toEqual([[ 'No data available in table!' ]]);
+  });
+
+  it('should hande row click', () => {
+    const fixture = createTestComponent(`
+        <table ngl-datatable [data]="data" (onRowClick)="rowClick($event)">
+          <ngl-datatable-column key="id"></ngl-datatable-column>
+        </table>`);
+
+    const {componentInstance} = fixture;
+    const rows = getRows(fixture.nativeElement);
+    expect(componentInstance.rowClick).not.toHaveBeenCalled();
+
+    rows[2].click();
+    expect(componentInstance.rowClick).toHaveBeenCalledWith({ event: jasmine.anything(), data: componentInstance.data[2]});
+
+    rows[1].click();
+    expect(componentInstance.rowClick).toHaveBeenCalledWith({ event: jasmine.anything(), data: componentInstance.data[1]});
+  });
+
+  it('should display custom header template', () => {
+    const fixture = createTestComponent(`
+        <table ngl-datatable>
+          <ngl-datatable-column heading="My title">
+            <template nglDatatableHeading>Custom heading</template>
+          </ngl-datatable-column>
+        </table>`);
+    expect(getHeadingsText(fixture.nativeElement)).toEqual(['Custom heading']);
+    expect(getHeadingsTitle(fixture.nativeElement)).toEqual(['My title']);
+  });
+
+  it('should not display `undefined` title', () => {
+    const fixture = createTestComponent(`
+        <table ngl-datatable>
+          <ngl-datatable-column>
+            <template nglDatatableHeading>Custom heading</template>
+          </ngl-datatable-column>
+        </table>`);
+    expect(getHeadingsText(fixture.nativeElement)).toEqual(['Custom heading']);
+    expect(getHeadingsTitle(fixture.nativeElement)).toEqual([null]);
+  });
+
+  it('should track rows based on input', () => {
+    const fixture = createTestComponent(`<table ngl-datatable [data]="data" trackByKey="id"></table>`);
+    const rows = getRows(fixture.nativeElement);
+
+    fixture.componentInstance.data = [ ...fixture.componentInstance.data.reverse() ];
+    fixture.detectChanges();
+
+    const newRows = getRows(fixture.nativeElement);
+    for (let i = 0, ii = fixture.componentInstance.data.length; i < ii; i++) {
+      expect(rows[i]).toBe(newRows[ii - i - 1]);
+    }
+  });
 });
 
-
-// Shortcut function for less boilerplate on each `it`
-function testAsync(fn: (value: ComponentFixture<TestComponent>) => void, html: string = null) {
-  return async(inject([TestComponentBuilder], (tcb: TestComponentBuilder) => {
-    if (html) {
-      tcb = tcb.overrideTemplate(TestComponent, html);
-    }
-    return tcb.createAsync(TestComponent).then(fn);
-  }));
-}
-
 @Component({
-  directives: [NGL_DATATABLE_DIRECTIVES],
   template: `
     <table ngl-datatable [data]="data">
       <ngl-datatable-column heading="ID" key="id"></ngl-datatable-column>
@@ -282,6 +375,10 @@ function testAsync(fn: (value: ComponentFixture<TestComponent>) => void, html: s
 })
 export class TestComponent {
   exists = true;
+  striped: boolean;
+  bordered: boolean;
+  sortable: boolean;
+  loading: boolean;
 
   data = [
     { id: 1, name: 'PP', number: 80 },
@@ -289,4 +386,13 @@ export class TestComponent {
     { id: 3, name: 'KB', number: 13 },
     { id: 4, name: 'EB', number: 14 },
   ];
+
+  sort: any;
+
+  class1: any;
+  class2: any;
+
+  sortChange = jasmine.createSpy('sortChange');
+  rowClick = jasmine.createSpy('rowClick');
+  cb = jasmine.createSpy('cb').and.callThrough();
 }
